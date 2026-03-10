@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Navbar } from "@/components/navbar";
+import Footer from "@/components/footer";
 import { CartProvider } from "@/components/cart-context";
 
 export const metadata: Metadata = {
@@ -21,6 +22,21 @@ export const metadata: Metadata = {
       "Natural shea butter and organic skincare products made for everyday care.",
     siteName: "Mediba's Organic",
     type: "website",
+    images: [
+      {
+        url: "/logo-badge.png",
+        width: 1200,
+        height: 630,
+        alt: "Mediba's Organic Shea Butter",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Mediba's Organic | Natural Shea Butter & Skincare",
+    description:
+      "Natural shea butter and organic skincare products made for everyday care.",
+    images: ["/logo-badge.png"],
   },
 };
 
@@ -35,6 +51,7 @@ export default function RootLayout({
         <CartProvider>
           <Navbar />
           {children}
+          <Footer />
         </CartProvider>
       </body>
     </html>
