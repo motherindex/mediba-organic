@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
 import { Promotion, getCartLineTotal, getProductPricing } from "@/lib/pricing";
 
 type CheckoutItemInput = {
@@ -7,16 +7,22 @@ type CheckoutItemInput = {
   quantity: number;
 };
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error("Missing Supabase environment variables.");
+}
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const items = Array.isArray(body?.items) ? body.items : [];
 
     if (items.length === 0) {
-      return NextResponse.json(
-        { error: "Cart is empty." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Cart is empty." }, { status: 400 });
     }
 
     const productIds = items
@@ -30,11 +36,13 @@ export async function POST(request: Request) {
       );
     }
 
-    const [{ data: products, error: productsError }, { data: promotions, error: promotionsError }] =
-      await Promise.all([
-        supabase.from("products").select("*").in("id", productIds),
-        supabase.from("promotions").select("*").in("product_id", productIds),
-      ]);
+    const [
+      { data: products, error: productsError },
+      { data: promotions, error: promotionsError },
+    ] = await Promise.all([
+      supabase.from("products").select("*").in("id", productIds),
+      supabase.from("promotions").select("*").in("product_id", productIds),
+    ]);
 
     if (productsError) {
       return NextResponse.json(
@@ -50,42 +58,46 @@ export async function POST(request: Request) {
       );
     }
 
-    const productMap = new Map((products ?? []).map((product: any) => [product.id, product]));
+    const productMap = new Map(
+      (products ?? []).map((product: any) => [product.id, product])
+    );
     const activePromotions = (promotions ?? []) as Promotion[];
 
-    const normalizedItems = items.map((item: CheckoutItemInput) => {
-      const product = productMap.get(item.id);
+    const normalizedItems = items
+      .map((item: CheckoutItemInput) => {
+        const product = productMap.get(item.id);
 
-      if (!product) {
-        return null;
-      }
+        if (!product) {
+          return null;
+        }
 
-      const quantity = Math.max(1, Number(item.quantity || 1));
+        const quantity = Math.max(1, Number(item.quantity || 1));
 
-      const pricing = getProductPricing({
-        productId: product.id,
-        basePrice: Number(product.price),
-        promotions: activePromotions,
-      });
+        const pricing = getProductPricing({
+          productId: product.id,
+          basePrice: Number(product.price),
+          promotions: activePromotions,
+        });
 
-      const lineTotal = getCartLineTotal({
-        unitPrice: pricing.finalPrice,
-        quantity,
-        promotionType: pricing.promotion?.type,
-      });
+        const lineTotal = getCartLineTotal({
+          unitPrice: pricing.finalPrice,
+          quantity,
+          promotionType: pricing.promotion?.type,
+        });
 
-      return {
-        product_id: product.id,
-        name: product.name,
-        quantity,
-        image: product.images?.[0] ?? null,
-        base_price: Number(product.price),
-        unit_price: pricing.finalPrice,
-        promotion_type: pricing.promotion?.type ?? null,
-        promotion_value: pricing.promotion?.value ?? null,
-        line_total: lineTotal,
-      };
-    }).filter(Boolean);
+        return {
+          product_id: product.id,
+          name: product.name,
+          quantity,
+          image: product.images?.[0] ?? null,
+          base_price: Number(product.price),
+          unit_price: pricing.finalPrice,
+          promotion_type: pricing.promotion?.type ?? null,
+          promotion_value: pricing.promotion?.value ?? null,
+          line_total: lineTotal,
+        };
+      })
+      .filter(Boolean);
 
     if (normalizedItems.length === 0) {
       return NextResponse.json(
