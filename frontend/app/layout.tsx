@@ -47,7 +47,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="bg-[#F8F3E9] text-[#3E2E17] antialiased">
+      <body
+        className="antialiased"
+        style={{ background: "var(--cream)", color: "var(--brown)" }}
+      >
         <CartProvider>
           <Navbar />
           {children}

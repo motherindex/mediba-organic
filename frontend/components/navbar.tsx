@@ -2,48 +2,242 @@
 
 import Link from "next/link";
 import { useCart } from "@/components/cart-context";
+import { useState, useEffect } from "react";
 
 export function Navbar() {
   const { itemCount } = useCart();
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const links = [
+    { label: "Home",    href: "/" },
+    { label: "Shop",    href: "/shop" },
+    { label: "About",   href: "/#about" },
+    { label: "Contact", href: "/#contact" },
+  ];
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-[#E7DCC8] bg-[#FFFDF8]/95 backdrop-blur">
-      <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <Link href="/" className="flex items-center justify-center md:justify-start">
+    <>
+      <nav
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 50,
+          background: scrolled ? "rgba(250,246,238,0.97)" : "var(--cream)",
+          borderBottom: `1px solid ${scrolled ? "var(--border)" : "transparent"}`,
+          backdropFilter: scrolled ? "blur(12px)" : "none",
+          transition: "background 0.3s, border-color 0.3s, box-shadow 0.3s",
+          boxShadow: scrolled ? "0 2px 20px rgba(62,46,23,0.06)" : "none",
+          fontFamily: "'Jost', sans-serif",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1152,
+            margin: "0 auto",
+            padding: "0 24px",
+            height: 68,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          {/* Logo */}
+          <Link href="/" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
             <img
               src="/logo.png"
               alt="Mediba's Organic"
-              className="h-[52px] w-auto sm:h-[60px]"
+              style={{ height: 48, width: "auto" }}
             />
           </Link>
 
-          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-3 text-sm font-medium text-[#3E2E17] md:justify-end">
-            <Link href="/" className="transition hover:text-[#8B6B2C]">
-              Home
-            </Link>
+          {/* Desktop nav */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 32,
+            }}
+            className="hidden-mobile"
+          >
+            {links.map((l) => (
+              <Link
+                key={l.label}
+                href={l.href}
+                style={{
+                  fontSize: "0.8rem",
+                  fontWeight: 500,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  color: "var(--brown)",
+                  textDecoration: "none",
+                  position: "relative",
+                  paddingBottom: 2,
+                  transition: "color 0.2s",
+                }}
+              >
+                {l.label}
+              </Link>
+            ))}
 
-            <Link href="/shop" className="transition hover:text-[#8B6B2C]">
-              Shop
-            </Link>
-
-            <a href="/#about" className="transition hover:text-[#556B2F]">
-              About
-            </a>
-
-            <a href="/#contact" className="transition hover:text-[#556B2F]">
-              Contact
-            </a>
-
+            {/* Cart */}
             <Link
               href="/cart"
-              className="rounded-full border border-[#E7DCC8] px-4 py-2 transition hover:border-[#8B6B2C] hover:text-[#8B6B2C]"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: "var(--gold)",
+                color: "#fff",
+                fontSize: "0.78rem",
+                fontWeight: 500,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                padding: "9px 20px",
+                borderRadius: 3,
+                textDecoration: "none",
+                transition: "background 0.2s, transform 0.2s",
+              }}
             >
-              Cart ({itemCount})
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <path d="M16 10a4 4 0 01-8 0"/>
+              </svg>
+              Cart
+              {itemCount > 0 && (
+                <span
+                  style={{
+                    background: "var(--brown)",
+                    color: "var(--gold-light)",
+                    borderRadius: "50%",
+                    width: 18,
+                    height: 18,
+                    fontSize: "0.65rem",
+                    fontWeight: 700,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {itemCount}
+                </span>
+              )}
             </Link>
           </div>
+
+          {/* Mobile: cart + hamburger */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }} className="show-mobile">
+            <Link
+              href="/cart"
+              style={{
+                position: "relative",
+                color: "var(--brown)",
+                textDecoration: "none",
+              }}
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <path d="M16 10a4 4 0 01-8 0"/>
+              </svg>
+              {itemCount > 0 && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: -4,
+                    right: -4,
+                    background: "var(--gold)",
+                    color: "#fff",
+                    borderRadius: "50%",
+                    width: 16,
+                    height: 16,
+                    fontSize: "0.6rem",
+                    fontWeight: 700,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {itemCount}
+                </span>
+              )}
+            </Link>
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: "var(--brown)",
+                padding: 4,
+              }}
+            >
+              {menuOpen ? (
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              ) : (
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="3" y1="6" x2="21" y2="6"/>
+                  <line x1="3" y1="12" x2="21" y2="12"/>
+                  <line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
-      </div>
-    </nav>
+
+        {/* Mobile menu */}
+        {menuOpen && (
+          <div
+            style={{
+              borderTop: "1px solid var(--border)",
+              background: "var(--cream)",
+              padding: "16px 24px 24px",
+            }}
+            className="show-mobile"
+          >
+            {links.map((l) => (
+              <Link
+                key={l.label}
+                href={l.href}
+                onClick={() => setMenuOpen(false)}
+                style={{
+                  display: "block",
+                  padding: "12px 0",
+                  fontSize: "0.9rem",
+                  fontWeight: 500,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: "var(--brown)",
+                  textDecoration: "none",
+                  borderBottom: "1px solid var(--border)",
+                }}
+              >
+                {l.label}
+              </Link>
+            ))}
+          </div>
+        )}
+      </nav>
+
+      <style>{`
+        @media (min-width: 768px) {
+          .hidden-mobile { display: flex !important; }
+          .show-mobile   { display: none  !important; }
+        }
+        @media (max-width: 767px) {
+          .hidden-mobile { display: none  !important; }
+          .show-mobile   { display: flex  !important; }
+        }
+      `}</style>
+    </>
   );
 }

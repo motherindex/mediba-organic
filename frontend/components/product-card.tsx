@@ -11,47 +11,124 @@ export function ProductCard({ product }: ProductCardProps) {
   const showDiscount = product.hasDiscount && displayPrice < product.price;
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-[#E7DCC8] bg-[#FFFDF8] shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-      <Link href={`/shop/${product.id}`}>
+    <div
+      className="card-hover"
+      style={{
+        overflow: "hidden",
+        borderRadius: 8,
+        border: "1px solid var(--border)",
+        background: "var(--white)",
+      }}
+    >
+      {/* Image */}
+      <Link href={`/shop/${product.id}`} className="img-zoom" style={{ display: "block" }}>
         <img
           src={
             product.images?.[0] ||
             "https://via.placeholder.com/600x600.png?text=Product"
           }
           alt={product.name}
-          className="h-64 w-full object-cover"
+          style={{
+            width: "100%",
+            height: 280,
+            objectFit: "cover",
+            display: "block",
+          }}
         />
       </Link>
 
-      <div className="p-5">
-        <Link href={`/shop/${product.id}`}>
-          <h2 className="text-xl font-semibold text-[#3E2E17] hover:text-[#8B6B2C]">
+      <div style={{ padding: "20px 20px 24px" }}>
+        {/* Promo badge */}
+        {product.promotionType === "bogo" && (
+          <span
+            style={{
+              display: "inline-block",
+              background: "rgba(74,103,65,0.1)",
+              color: "var(--green)",
+              border: "1px solid rgba(74,103,65,0.25)",
+              borderRadius: 3,
+              fontSize: "0.65rem",
+              fontWeight: 600,
+              letterSpacing: "0.15em",
+              textTransform: "uppercase",
+              padding: "3px 10px",
+              marginBottom: 10,
+              fontFamily: "'Jost', sans-serif",
+            }}
+          >
+            BOGO Active
+          </span>
+        )}
+
+        {/* Name */}
+        <Link href={`/shop/${product.id}`} style={{ textDecoration: "none" }}>
+          <h2
+            style={{
+              fontFamily: "'Cormorant Garamond', serif",
+              fontSize: "1.25rem",
+              fontWeight: 600,
+              color: "var(--brown)",
+              marginBottom: 8,
+              lineHeight: 1.3,
+              transition: "color 0.2s",
+            }}
+          >
             {product.name}
           </h2>
         </Link>
 
-        <p className="mt-2 text-sm text-[#6B7D52]">
+        {/* Description */}
+        <p
+          style={{
+            fontFamily: "'Jost', sans-serif",
+            fontSize: "0.85rem",
+            color: "var(--brown-light)",
+            lineHeight: 1.7,
+            fontWeight: 300,
+            marginBottom: 16,
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+          }}
+        >
           {product.description}
         </p>
 
-        {product.promotionType === "bogo" ? (
-          <p className="mt-4 inline-flex rounded-full bg-[#EAF3DD] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#556B2F]">
-            BOGO Active
-          </p>
-        ) : null}
-
-        <div className="mt-4">
+        {/* Price */}
+        <div style={{ marginBottom: 16 }}>
           {showDiscount ? (
-            <div className="flex items-center gap-3">
-              <p className="text-lg font-bold text-[#8B6B2C]">
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <p
+                style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontSize: "1.4rem",
+                  fontWeight: 700,
+                  color: "var(--gold)",
+                }}
+              >
                 ${displayPrice.toFixed(2)}
               </p>
-              <p className="text-sm text-[#8E8E8E] line-through">
+              <p
+                style={{
+                  fontFamily: "'Jost', sans-serif",
+                  fontSize: "0.85rem",
+                  color: "#aaa",
+                  textDecoration: "line-through",
+                }}
+              >
                 ${product.price.toFixed(2)}
               </p>
             </div>
           ) : (
-            <p className="text-lg font-bold text-[#8B6B2C]">
+            <p
+              style={{
+                fontFamily: "'Cormorant Garamond', serif",
+                fontSize: "1.4rem",
+                fontWeight: 700,
+                color: "var(--gold)",
+              }}
+            >
               ${displayPrice.toFixed(2)}
             </p>
           )}

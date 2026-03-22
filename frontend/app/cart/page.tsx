@@ -5,43 +5,86 @@ import { getCartLineTotal } from "@/lib/pricing";
 import { CheckoutButton } from "@/components/checkout-button";
 
 export default function CartPage() {
-  const {
-    items,
-    removeFromCart,
-    increaseQuantity,
-    decreaseQuantity,
-    subtotal,
-  } = useCart();
+  const { items, removeFromCart, increaseQuantity, decreaseQuantity, subtotal } = useCart();
 
   return (
-    <main className="min-h-screen bg-[#F8F3E9] px-6 py-16 text-[#3E2E17]">
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-10">
-          <p className="text-sm font-medium uppercase tracking-[0.2em] text-[#8B6B2C]">
-            Cart
-          </p>
-          <h1 className="mt-2 text-4xl font-bold">Your Cart</h1>
-          <p className="mt-3 max-w-2xl text-[#6B7D52]">
+    <main style={{ minHeight: "100vh", background: "var(--cream)", padding: "64px 24px 96px" }}>
+      <div style={{ maxWidth: 1152, margin: "0 auto" }}>
+
+        {/* Header */}
+        <div style={{ marginBottom: 40 }}>
+          <p className="section-label">Your Selection</p>
+          <h1
+            style={{
+              fontFamily: "'Cormorant Garamond', serif",
+              fontSize: "clamp(2rem, 4vw, 3rem)",
+              fontWeight: 600,
+              color: "var(--brown)",
+              lineHeight: 1.15,
+            }}
+          >
+            Your Cart
+          </h1>
+          <p
+            style={{
+              fontFamily: "'Jost', sans-serif",
+              fontSize: "0.92rem",
+              color: "var(--brown-light)",
+              marginTop: 8,
+              fontWeight: 300,
+            }}
+          >
             Review your selected products before checkout.
           </p>
         </div>
 
         {items.length === 0 ? (
-          <div className="rounded-2xl border border-[#E7DCC8] bg-[#FFFDF8] p-10 text-center shadow-sm">
-            <h2 className="text-2xl font-semibold">Your cart is empty</h2>
-            <p className="mt-3 text-[#6B7D52]">
+          <div
+            style={{
+              background: "var(--white)",
+              border: "1px solid var(--border)",
+              borderRadius: 8,
+              padding: "64px 24px",
+              textAlign: "center",
+            }}
+          >
+            <p
+              style={{
+                fontFamily: "'Cormorant Garamond', serif",
+                fontSize: "1.6rem",
+                fontWeight: 600,
+                color: "var(--brown)",
+                marginBottom: 10,
+              }}
+            >
+              Your cart is empty
+            </p>
+            <p
+              style={{
+                fontFamily: "'Jost', sans-serif",
+                fontSize: "0.9rem",
+                color: "var(--brown-light)",
+                marginBottom: 28,
+                fontWeight: 300,
+              }}
+            >
               Add products from the shop to get started.
             </p>
-            <a
-              href="/shop"
-              className="mt-6 inline-block rounded-xl bg-[#556B2F] px-6 py-3 font-medium text-white transition hover:bg-[#445624]"
-            >
+            <a href="/shop" className="btn-primary">
               Continue Shopping
             </a>
           </div>
         ) : (
-          <div className="grid gap-8 lg:grid-cols-[1.6fr_0.8fr]">
-            <div className="space-y-4">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+              gap: 32,
+              alignItems: "start",
+            }}
+          >
+            {/* Items list */}
+            <div style={{ gridColumn: "span 2", display: "flex", flexDirection: "column", gap: 16 }}>
               {items.map((item) => {
                 const lineTotal = getCartLineTotal({
                   unitPrice: item.price,
@@ -52,72 +95,171 @@ export default function CartPage() {
                 return (
                   <div
                     key={item.id}
-                    className="flex flex-col gap-4 rounded-2xl border border-[#E7DCC8] bg-[#FFFDF8] p-5 shadow-sm sm:flex-row sm:items-center"
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: 20,
+                      alignItems: "center",
+                      background: "var(--white)",
+                      border: "1px solid var(--border)",
+                      borderRadius: 8,
+                      padding: "20px 24px",
+                    }}
                   >
+                    {/* Image */}
                     <img
-                      src={
-                        item.image ||
-                        "https://via.placeholder.com/300x300.png?text=Product"
-                      }
+                      src={item.image || "https://via.placeholder.com/300x300.png?text=Product"}
                       alt={item.name}
-                      className="h-28 w-28 rounded-xl object-cover"
+                      style={{
+                        width: 88,
+                        height: 88,
+                        borderRadius: 6,
+                        objectFit: "cover",
+                        flexShrink: 0,
+                        border: "1px solid var(--border)",
+                      }}
                     />
 
-                    <div className="flex-1">
-                      <h2 className="text-xl font-semibold">{item.name}</h2>
+                    {/* Info */}
+                    <div style={{ flex: 1, minWidth: 140 }}>
+                      <h2
+                        style={{
+                          fontFamily: "'Cormorant Garamond', serif",
+                          fontSize: "1.15rem",
+                          fontWeight: 600,
+                          color: "var(--brown)",
+                          marginBottom: 4,
+                        }}
+                      >
+                        {item.name}
+                      </h2>
 
-                      {item.promotionType === "bogo" ? (
-                        <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-[#556B2F]">
+                      {item.promotionType === "bogo" && (
+                        <span
+                          style={{
+                            display: "inline-block",
+                            fontSize: "0.65rem",
+                            fontWeight: 600,
+                            letterSpacing: "0.14em",
+                            textTransform: "uppercase",
+                            color: "var(--green)",
+                            background: "rgba(74,103,65,0.08)",
+                            border: "1px solid rgba(74,103,65,0.2)",
+                            borderRadius: 3,
+                            padding: "2px 8px",
+                            marginBottom: 6,
+                            fontFamily: "'Jost', sans-serif",
+                          }}
+                        >
                           BOGO Applied
-                        </p>
-                      ) : null}
+                        </span>
+                      )}
 
-                      <div className="mt-2">
-                        {item.originalPrice && item.originalPrice > item.price ? (
-                          <div className="flex items-center gap-3">
-                            <p className="font-bold text-[#8B6B2C]">
-                              ${item.price.toFixed(2)}
-                            </p>
-                            <p className="text-sm text-[#8E8E8E] line-through">
-                              ${item.originalPrice.toFixed(2)}
-                            </p>
-                          </div>
-                        ) : (
-                          <p className="font-bold text-[#8B6B2C]">
-                            ${item.price.toFixed(2)}
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4 }}>
+                        <p
+                          style={{
+                            fontFamily: "'Cormorant Garamond', serif",
+                            fontSize: "1.2rem",
+                            fontWeight: 700,
+                            color: "var(--gold)",
+                          }}
+                        >
+                          ${item.price.toFixed(2)}
+                        </p>
+                        {item.originalPrice && item.originalPrice > item.price && (
+                          <p
+                            style={{
+                              fontFamily: "'Jost', sans-serif",
+                              fontSize: "0.82rem",
+                              color: "#aaa",
+                              textDecoration: "line-through",
+                            }}
+                          >
+                            ${item.originalPrice.toFixed(2)}
                           </p>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    {/* Qty controls */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <button
                         onClick={() => decreaseQuantity(item.id)}
-                        className="h-10 w-10 rounded-lg border border-[#E7DCC8] bg-white text-lg"
+                        style={{
+                          width: 34,
+                          height: 34,
+                          borderRadius: 4,
+                          border: "1px solid var(--border)",
+                          background: "var(--cream)",
+                          color: "var(--brown)",
+                          fontSize: "1.1rem",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontFamily: "'Jost', sans-serif",
+                        }}
                       >
-                        -
+                        −
                       </button>
-
-                      <span className="min-w-[24px] text-center font-medium">
+                      <span
+                        style={{
+                          fontFamily: "'Jost', sans-serif",
+                          fontWeight: 500,
+                          minWidth: 24,
+                          textAlign: "center",
+                          color: "var(--brown)",
+                        }}
+                      >
                         {item.quantity}
                       </span>
-
                       <button
                         onClick={() => increaseQuantity(item.id)}
-                        className="h-10 w-10 rounded-lg border border-[#E7DCC8] bg-white text-lg"
+                        style={{
+                          width: 34,
+                          height: 34,
+                          borderRadius: 4,
+                          border: "1px solid var(--border)",
+                          background: "var(--cream)",
+                          color: "var(--brown)",
+                          fontSize: "1.1rem",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontFamily: "'Jost', sans-serif",
+                        }}
                       >
                         +
                       </button>
                     </div>
 
-                    <div className="text-right">
-                      <p className="font-semibold text-[#3E2E17]">
+                    {/* Line total + remove */}
+                    <div style={{ textAlign: "right", minWidth: 80 }}>
+                      <p
+                        style={{
+                          fontFamily: "'Cormorant Garamond', serif",
+                          fontSize: "1.2rem",
+                          fontWeight: 700,
+                          color: "var(--brown)",
+                        }}
+                      >
                         ${lineTotal.toFixed(2)}
                       </p>
-
                       <button
                         onClick={() => removeFromCart(item.id)}
-                        className="mt-2 text-sm font-medium text-[#556B2F] hover:text-[#8B6B2C]"
+                        style={{
+                          marginTop: 6,
+                          fontFamily: "'Jost', sans-serif",
+                          fontSize: "0.78rem",
+                          fontWeight: 500,
+                          color: "var(--brown-light)",
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          letterSpacing: "0.04em",
+                          transition: "color 0.2s",
+                        }}
                       >
                         Remove
                       </button>
@@ -127,40 +269,105 @@ export default function CartPage() {
               })}
             </div>
 
-            <div className="h-fit rounded-2xl border border-[#E7DCC8] bg-[#FFFDF8] p-6 shadow-sm">
-              <h2 className="text-2xl font-semibold">Order Summary</h2>
+            {/* Order summary */}
+            <div
+              style={{
+                background: "var(--white)",
+                border: "1px solid var(--border)",
+                borderRadius: 8,
+                padding: "28px 24px",
+                position: "sticky",
+                top: 88,
+              }}
+            >
+              <h2
+                style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontSize: "1.4rem",
+                  fontWeight: 600,
+                  color: "var(--brown)",
+                  marginBottom: 20,
+                }}
+              >
+                Order Summary
+              </h2>
 
-              <div className="mt-6 flex items-center justify-between text-[#6B7D52]">
-                <span>Subtotal</span>
-                <span className="font-medium text-[#3E2E17]">
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: 12,
+                  fontFamily: "'Jost', sans-serif",
+                  fontSize: "0.88rem",
+                }}
+              >
+                <span style={{ color: "var(--brown-light)", fontWeight: 300 }}>Subtotal</span>
+                <span style={{ color: "var(--brown)", fontWeight: 500 }}>${subtotal.toFixed(2)}</span>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: 20,
+                  fontFamily: "'Jost', sans-serif",
+                  fontSize: "0.88rem",
+                }}
+              >
+                <span style={{ color: "var(--brown-light)", fontWeight: 300 }}>Shipping</span>
+                <span style={{ color: "var(--brown-light)", fontWeight: 300 }}>Calculated later</span>
+              </div>
+
+              <div
+                style={{
+                  borderTop: "1px solid var(--border)",
+                  paddingTop: 16,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 4,
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: "'Jost', sans-serif",
+                    fontWeight: 600,
+                    fontSize: "0.9rem",
+                    color: "var(--brown)",
+                  }}
+                >
+                  Total
+                </span>
+                <span
+                  style={{
+                    fontFamily: "'Cormorant Garamond', serif",
+                    fontSize: "1.6rem",
+                    fontWeight: 700,
+                    color: "var(--gold)",
+                  }}
+                >
                   ${subtotal.toFixed(2)}
                 </span>
               </div>
 
-              <div className="mt-4 flex items-center justify-between text-[#6B7D52]">
-                <span>Shipping</span>
-                <span className="font-medium text-[#3E2E17]">
-                  Calculated later
-                </span>
-              </div>
+              <CheckoutButton />
 
-              <div className="mt-6 border-t border-[#E7DCC8] pt-6">
-                <div className="flex items-center justify-between">
-                  <span className="text-lg font-semibold">Total</span>
-                  <span className="text-2xl font-bold text-[#8B6B2C]">
-                    ${subtotal.toFixed(2)}
-                  </span>
-                </div>
-
-                <CheckoutButton />
-
-                <a
-                  href="/shop"
-                  className="mt-4 block text-center text-sm font-medium text-[#556B2F] hover:text-[#8B6B2C]"
-                >
-                  Continue Shopping
-                </a>
-              </div>
+              <a
+                href="/shop"
+                style={{
+                  display: "block",
+                  textAlign: "center",
+                  marginTop: 14,
+                  fontFamily: "'Jost', sans-serif",
+                  fontSize: "0.8rem",
+                  fontWeight: 500,
+                  color: "var(--green)",
+                  textDecoration: "none",
+                  letterSpacing: "0.06em",
+                }}
+              >
+                ← Continue Shopping
+              </a>
             </div>
           </div>
         )}

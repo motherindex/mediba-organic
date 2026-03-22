@@ -17,7 +17,6 @@ export default async function Home() {
       basePrice: Number(product.price),
       promotions,
     });
-
     return {
       ...product,
       finalPrice: pricing.finalPrice,
@@ -28,85 +27,295 @@ export default async function Home() {
   });
 
   return (
-    <main className="min-h-screen bg-[#F8F3E9] text-[#3E2E17]">
-      <section className="px-4 py-16 sm:px-6 sm:py-20">
-        <div className="mx-auto max-w-6xl">
-          <p className="mb-3 text-sm font-medium uppercase tracking-[0.2em] text-[#8B6B2C]">
-            Mediba’s Organic
-          </p>
+    <main style={{ minHeight: "100vh", background: "var(--cream)" }}>
 
-          <h1 className="max-w-4xl text-4xl font-bold leading-tight text-[#3E2E17] sm:text-5xl lg:text-6xl">
-            Natural shea butter made to nourish, protect, and restore your skin.
+      {/* ── HERO ─────────────────────────────────────────── */}
+      <section
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          padding: "80px 24px 96px",
+          background: "linear-gradient(160deg, var(--cream) 0%, var(--cream-dark) 60%, var(--parchment) 100%)",
+        }}
+      >
+        {/* Decorative circle */}
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            top: -120,
+            right: -120,
+            width: 520,
+            height: 520,
+            borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(196,146,74,0.12) 0%, transparent 70%)",
+            pointerEvents: "none",
+          }}
+        />
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            bottom: -60,
+            left: -80,
+            width: 340,
+            height: 340,
+            borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(74,103,65,0.08) 0%, transparent 70%)",
+            pointerEvents: "none",
+          }}
+        />
+
+        <div style={{ maxWidth: 1152, margin: "0 auto", position: "relative" }}>
+          <p className="section-label fade-up">Mediba&apos;s Organic</p>
+
+          <h1
+            className="fade-up fade-up-delay-1"
+            style={{
+              fontFamily: "'Cormorant Garamond', serif",
+              fontSize: "clamp(2.6rem, 6vw, 5rem)",
+              fontWeight: 600,
+              lineHeight: 1.1,
+              color: "var(--brown)",
+              maxWidth: 780,
+              marginBottom: 24,
+            }}
+          >
+            Natural shea butter made to{" "}
+            <em style={{ fontStyle: "italic", color: "var(--gold)" }}>nourish</em>,
+            protect, and restore.
           </h1>
 
-          <p className="mt-6 max-w-2xl text-base text-[#6B7D52] sm:text-lg">
-            Pure organic skincare rooted in simplicity, wellness, and natural care.
+          <p
+            className="fade-up fade-up-delay-2"
+            style={{
+              fontSize: "1.05rem",
+              color: "var(--brown-light)",
+              maxWidth: 520,
+              lineHeight: 1.75,
+              marginBottom: 36,
+              fontFamily: "'Jost', sans-serif",
+              fontWeight: 300,
+            }}
+          >
+            Pure organic skincare rooted in simplicity, wellness, and the natural
+            benefits of West African shea.
           </p>
 
-          <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:flex-wrap">
+          <div
+            className="fade-up fade-up-delay-3"
+            style={{ display: "flex", flexWrap: "wrap", gap: 14 }}
+          >
+            <a href="/shop" className="btn-primary">
+              Shop Now
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="#about" className="btn-outline">
+              Our Story
+            </a>
+          </div>
+
+          {/* Trust badges */}
+          <div
+            className="fade-up fade-up-delay-4"
+            style={{
+              marginTop: 56,
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 28,
+              alignItems: "center",
+            }}
+          >
+            {[
+              { icon: "🌿", label: "100% Organic" },
+              { icon: "✦",  label: "Ethically Sourced" },
+              { icon: "🫙", label: "No Preservatives" },
+              { icon: "🌍", label: "From West Africa" },
+            ].map((b) => (
+              <div
+                key={b.label}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  fontSize: "0.8rem",
+                  fontFamily: "'Jost', sans-serif",
+                  fontWeight: 500,
+                  letterSpacing: "0.05em",
+                  color: "var(--brown-mid)",
+                }}
+              >
+                <span style={{ fontSize: "1rem" }}>{b.icon}</span>
+                {b.label}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── WHY SHEA BUTTER ──────────────────────────────── */}
+      <section
+        style={{
+          background: "var(--white)",
+          borderTop: "1px solid var(--border)",
+          borderBottom: "1px solid var(--border)",
+          padding: "80px 24px",
+        }}
+      >
+        <div style={{ maxWidth: 1152, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 52 }}>
+            <p className="section-label">The Benefits</p>
+            <h2
+              style={{
+                fontFamily: "'Cormorant Garamond', serif",
+                fontSize: "clamp(2rem, 4vw, 3rem)",
+                fontWeight: 600,
+                color: "var(--brown)",
+              }}
+            >
+              Why Shea Butter?
+            </h2>
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+              gap: 24,
+            }}
+          >
+            {[
+              {
+                title: "Deep Moisture",
+                body: "Rich in vitamins A, E, and F, our shea butter provides profound hydration that helps nourish even the driest skin — naturally.",
+                icon: "💧",
+              },
+              {
+                title: "Skin Protection",
+                body: "Anti-inflammatory properties calm irritation while antioxidants protect against environmental stressors and support the skin barrier.",
+                icon: "🛡",
+              },
+              {
+                title: "Natural Restoration",
+                body: "Improves elasticity, reduces the appearance of scars, and soothes conditions like eczema — centuries of tradition in every jar.",
+                icon: "✨",
+              },
+            ].map((card) => (
+              <div
+                key={card.title}
+                className="card-hover"
+                style={{
+                  background: "var(--cream)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 8,
+                  padding: "32px 28px",
+                }}
+              >
+                <span style={{ fontSize: "1.8rem", display: "block", marginBottom: 16 }}>
+                  {card.icon}
+                </span>
+                <h3
+                  style={{
+                    fontFamily: "'Cormorant Garamond', serif",
+                    fontSize: "1.35rem",
+                    fontWeight: 600,
+                    color: "var(--green)",
+                    marginBottom: 10,
+                  }}
+                >
+                  {card.title}
+                </h3>
+                <p
+                  style={{
+                    fontFamily: "'Jost', sans-serif",
+                    fontSize: "0.9rem",
+                    color: "var(--brown-light)",
+                    lineHeight: 1.75,
+                    fontWeight: 300,
+                  }}
+                >
+                  {card.body}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FEATURED PRODUCTS ────────────────────────────── */}
+      <section
+        id="featured-products"
+        style={{ padding: "80px 24px", background: "var(--cream)" }}
+      >
+        <div style={{ maxWidth: 1152, margin: "0 auto" }}>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "flex-end",
+              justifyContent: "space-between",
+              gap: 16,
+              marginBottom: 40,
+            }}
+          >
+            <div>
+              <p className="section-label">Our Collection</p>
+              <h2
+                style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontSize: "clamp(1.8rem, 3.5vw, 2.6rem)",
+                  fontWeight: 600,
+                  color: "var(--brown)",
+                }}
+              >
+                Featured Products
+              </h2>
+            </div>
             <a
               href="/shop"
-              className="rounded-xl bg-[#8B6B2C] px-6 py-3 text-center font-medium text-white transition hover:bg-[#715622]"
+              style={{
+                fontSize: "0.78rem",
+                fontWeight: 500,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "var(--gold)",
+                textDecoration: "none",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                fontFamily: "'Jost', sans-serif",
+              }}
             >
-              Shop Now
-            </a>
-
-            <a
-              href="#about"
-              className="rounded-xl border border-[#556B2F] px-6 py-3 text-center font-medium text-[#556B2F] transition hover:bg-[#556B2F] hover:text-white"
-            >
-              Learn More
+              View All
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
             </a>
           </div>
-        </div>
-      </section>
-
-      <section className="border-y border-[#E7DCC8] bg-[#FFFDF8] px-4 py-14 sm:px-6 sm:py-16">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="text-2xl font-bold text-[#3E2E17] sm:text-3xl">
-            Why Shea Butter
-          </h2>
-
-          <div className="mt-8 grid gap-6 md:grid-cols-3">
-            <div className="rounded-2xl border border-[#E7DCC8] bg-white p-6 shadow-sm">
-              <h3 className="text-xl font-semibold text-[#556B2F]">Deep Moisture</h3>
-              <p className="mt-3 text-[#6B7D52]">
-                Helps keep skin soft, smooth, and hydrated naturally.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-[#E7DCC8] bg-white p-6 shadow-sm">
-              <h3 className="text-xl font-semibold text-[#556B2F]">Skin Protection</h3>
-              <p className="mt-3 text-[#6B7D52]">
-                Supports the skin barrier and helps protect against dryness.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-[#E7DCC8] bg-white p-6 shadow-sm">
-              <h3 className="text-xl font-semibold text-[#556B2F]">Natural Care</h3>
-              <p className="mt-3 text-[#6B7D52]">
-                A simple, organic skincare solution made from nature.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="featured-products" className="px-4 py-14 sm:px-6 sm:py-16">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="text-2xl font-bold text-[#3E2E17] sm:text-3xl">
-            Featured Products
-          </h2>
-          <p className="mt-3 max-w-2xl text-[#6B7D52]">
-            Explore our organic shea butter collection made for natural everyday skincare.
-          </p>
 
           {error ? (
-            <pre className="mt-6 overflow-x-auto rounded-lg bg-red-50 p-4 text-red-600">
+            <pre
+              style={{
+                background: "#fff5f5",
+                color: "#c53030",
+                padding: 16,
+                borderRadius: 6,
+                overflow: "auto",
+                fontSize: "0.85rem",
+              }}
+            >
               {JSON.stringify(error, null, 2)}
             </pre>
           ) : (
-            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                gap: 24,
+              }}
+            >
               {products.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -115,41 +324,218 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* ── ABOUT ─────────────────────────────────────────── */}
       <section
         id="about"
-        className="border-y border-[#E7DCC8] bg-[#FFFDF8] px-4 py-14 sm:px-6 sm:py-16"
+        style={{
+          background: "var(--white)",
+          borderTop: "1px solid var(--border)",
+          borderBottom: "1px solid var(--border)",
+          padding: "80px 24px",
+        }}
       >
-        <div className="mx-auto max-w-6xl">
-          <h2 className="text-2xl font-bold text-[#3E2E17] sm:text-3xl">
-            About Mediba Organic
-          </h2>
-          <p className="mt-6 max-w-3xl text-base leading-8 text-[#6B7D52] sm:text-lg">
-            Mediba Organic is focused on providing natural shea butter products that support
-            healthy skin through simple, organic care. The brand is rooted in wellness,
-            quality, and the natural benefits of shea-based skincare.
-          </p>
+        <div
+          style={{
+            maxWidth: 1152,
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gap: 56,
+            alignItems: "center",
+          }}
+        >
+          <div>
+            <p className="section-label">Our Story</p>
+            <h2
+              style={{
+                fontFamily: "'Cormorant Garamond', serif",
+                fontSize: "clamp(1.9rem, 3.5vw, 2.8rem)",
+                fontWeight: 600,
+                color: "var(--brown)",
+                marginBottom: 20,
+                lineHeight: 1.2,
+              }}
+            >
+              About Mediba Organic
+            </h2>
+            <p
+              style={{
+                fontFamily: "'Jost', sans-serif",
+                fontSize: "0.95rem",
+                color: "var(--brown-light)",
+                lineHeight: 1.85,
+                fontWeight: 300,
+                marginBottom: 16,
+              }}
+            >
+              Mediba Organic is focused on providing natural shea butter products that
+              support healthy skin through simple, organic care. The brand is rooted in
+              wellness, quality, and the natural benefits of shea-based skincare.
+            </p>
+            <p
+              style={{
+                fontFamily: "'Jost', sans-serif",
+                fontSize: "0.95rem",
+                color: "var(--brown-light)",
+                lineHeight: 1.85,
+                fontWeight: 300,
+              }}
+            >
+              Our shea butter is responsibly sourced from local African communities,
+              supporting fair trade and sustainable harvesting practices — empowering
+              people while protecting the environment.
+            </p>
+          </div>
+
+          {/* Stats */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 16,
+            }}
+          >
+            {[
+              { value: "100%", label: "Pure & Organic" },
+              { value: "0",    label: "Chemicals Added" },
+              { value: "🌱",   label: "Sustainably Sourced" },
+              { value: "GH",   label: "From Ghana, W. Africa" },
+            ].map((s) => (
+              <div
+                key={s.label}
+                style={{
+                  background: "var(--cream)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 8,
+                  padding: "24px 20px",
+                  textAlign: "center",
+                }}
+              >
+                <p
+                  style={{
+                    fontFamily: "'Cormorant Garamond', serif",
+                    fontSize: "2rem",
+                    fontWeight: 700,
+                    color: "var(--gold)",
+                    lineHeight: 1,
+                    marginBottom: 6,
+                  }}
+                >
+                  {s.value}
+                </p>
+                <p
+                  style={{
+                    fontFamily: "'Jost', sans-serif",
+                    fontSize: "0.75rem",
+                    color: "var(--brown-light)",
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    fontWeight: 500,
+                  }}
+                >
+                  {s.label}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section id="contact" className="px-4 py-14 sm:px-6 sm:py-16">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="text-2xl font-bold text-[#3E2E17] sm:text-3xl">Contact</h2>
-          <p className="mt-4 text-[#6B7D52]">
-            For product inquiries, partnerships, or support, please contact Mediba Organic.
+      {/* ── CONTACT ──────────────────────────────────────── */}
+      <section id="contact" style={{ padding: "80px 24px", background: "var(--cream)" }}>
+        <div style={{ maxWidth: 1152, margin: "0 auto" }}>
+          <p className="section-label">Get in Touch</p>
+          <h2
+            style={{
+              fontFamily: "'Cormorant Garamond', serif",
+              fontSize: "clamp(1.9rem, 3.5vw, 2.8rem)",
+              fontWeight: 600,
+              color: "var(--brown)",
+              marginBottom: 12,
+            }}
+          >
+            Contact Us
+          </h2>
+          <p
+            style={{
+              fontFamily: "'Jost', sans-serif",
+              fontSize: "0.95rem",
+              color: "var(--brown-light)",
+              marginBottom: 36,
+              fontWeight: 300,
+            }}
+          >
+            For product inquiries, partnerships, wholesale, or support — we&apos;re here.
           </p>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
-            <div className="rounded-2xl border border-[#E7DCC8] bg-[#FFFDF8] p-6 shadow-sm">
-              <h3 className="text-lg font-semibold text-[#556B2F]">Email</h3>
-              <p className="mt-2 break-words text-[#6B7D52]">
-                comingsoon@mediba-organic.com
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-[#E7DCC8] bg-[#FFFDF8] p-6 shadow-sm">
-              <h3 className="text-lg font-semibold text-[#556B2F]">Brand</h3>
-              <p className="mt-2 text-[#6B7D52]">Organic skincare for everyday care.</p>
-            </div>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gap: 20,
+            }}
+          >
+            {[
+              {
+                icon: "✉",
+                title: "Email",
+                body: "comingsoon@mediba-organic.com",
+                note: "We aim to respond within 1–2 business days.",
+              },
+              {
+                icon: "🤝",
+                title: "Wholesale & Custom Orders",
+                body: "Bulk orders & private labeling welcome.",
+                note: "Custom orders may require advance notice and deposit.",
+              },
+            ].map((c) => (
+              <div
+                key={c.title}
+                className="card-hover"
+                style={{
+                  background: "var(--white)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 8,
+                  padding: "28px 24px",
+                }}
+              >
+                <span style={{ fontSize: "1.5rem", display: "block", marginBottom: 12 }}>
+                  {c.icon}
+                </span>
+                <h3
+                  style={{
+                    fontFamily: "'Cormorant Garamond', serif",
+                    fontSize: "1.2rem",
+                    fontWeight: 600,
+                    color: "var(--green)",
+                    marginBottom: 8,
+                  }}
+                >
+                  {c.title}
+                </h3>
+                <p
+                  style={{
+                    fontFamily: "'Jost', sans-serif",
+                    fontSize: "0.9rem",
+                    color: "var(--brown)",
+                    marginBottom: 6,
+                  }}
+                >
+                  {c.body}
+                </p>
+                <p
+                  style={{
+                    fontFamily: "'Jost', sans-serif",
+                    fontSize: "0.8rem",
+                    color: "var(--brown-light)",
+                    fontWeight: 300,
+                    lineHeight: 1.6,
+                  }}
+                >
+                  {c.note}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </section>

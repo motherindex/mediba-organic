@@ -20,7 +20,8 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
   return (
     <button
       onClick={() => addToCart(product)}
-      className="mt-4 w-full rounded-xl bg-[#556B2F] px-4 py-3 text-white transition hover:bg-[#445624]"
+      className="btn-primary"
+      style={{ width: "100%", justifyContent: "center", marginTop: 16 }}
     >
       Add to Cart
     </button>

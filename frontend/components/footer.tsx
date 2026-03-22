@@ -2,17 +2,56 @@ import Link from "next/link";
 import Image from "next/image";
 
 export default function Footer() {
+  const year = new Date().getFullYear();
+
   return (
-    <footer className="mt-24 border-t border-[#e8dfcf] bg-[#F3EBDC] text-[#3E2E17]">
-      <div className="mx-auto max-w-6xl px-6 py-14">
-
-        {/* Top grid */}
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
-
+    <footer
+      style={{
+        background: "var(--brown)",
+        color: "var(--parchment)",
+        fontFamily: "'Jost', sans-serif",
+        marginTop: 0,
+      }}
+    >
+      {/* ── Top grid ── */}
+      <div
+        style={{
+          borderBottom: "1px solid rgba(255,255,255,0.07)",
+          padding: "60px 24px 52px",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1152,
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+            gap: 48,
+          }}
+        >
           {/* Brand */}
           <div>
-            <h3 className="text-lg font-semibold">Mediba's Organic</h3>
-            <p className="mt-3 text-sm text-[#5c4a2a]">
+            <p
+              style={{
+                fontFamily: "'Cormorant Garamond', serif",
+                fontSize: "1.55rem",
+                fontWeight: 600,
+                color: "var(--gold-light)",
+                lineHeight: 1.2,
+                marginBottom: 12,
+              }}
+            >
+              Mediba&apos;s<br />Organic
+            </p>
+            <p
+              style={{
+                fontSize: "0.82rem",
+                color: "rgba(237,227,204,0.6)",
+                lineHeight: 1.75,
+                maxWidth: 210,
+                fontWeight: 300,
+              }}
+            >
               Natural shea butter and organic skincare crafted to nourish,
               protect, and restore your skin.
             </p>
@@ -20,96 +59,197 @@ export default function Footer() {
 
           {/* Shop */}
           <div>
-            <h4 className="font-semibold mb-3">Shop</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="/shop" className="hover:underline">
-                  All Products
+            <p
+              style={{
+                fontSize: "0.62rem",
+                fontWeight: 600,
+                letterSpacing: "0.24em",
+                textTransform: "uppercase",
+                color: "var(--gold)",
+                marginBottom: 16,
+              }}
+            >
+              Shop
+            </p>
+            <nav style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+              {[
+                { label: "All Products", href: "/shop" },
+                { label: "Shea Butter",  href: "/shop" },
+                { label: "Cart",         href: "/cart" },
+              ].map((l) => (
+                <Link
+                  key={l.label}
+                  href={l.href}
+                  style={{
+                    fontSize: "0.875rem",
+                    color: "rgba(237,227,204,0.65)",
+                    textDecoration: "none",
+                    fontWeight: 300,
+                    transition: "color 0.2s",
+                  }}
+                >
+                  {l.label}
                 </Link>
-              </li>
-              <li>
-                <Link href="/cart" className="hover:underline">
-                  Cart
-                </Link>
-              </li>
-            </ul>
+              ))}
+            </nav>
           </div>
 
           {/* Company */}
           <div>
-            <h4 className="font-semibold mb-3">Company</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="/" className="hover:underline">
-                  Home
+            <p
+              style={{
+                fontSize: "0.62rem",
+                fontWeight: 600,
+                letterSpacing: "0.24em",
+                textTransform: "uppercase",
+                color: "var(--gold)",
+                marginBottom: 16,
+              }}
+            >
+              Company
+            </p>
+            <nav style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+              {[
+                { label: "Home",           href: "/" },
+                { label: "About",          href: "/#about" },
+                { label: "Contact",        href: "/#contact" },
+                { label: "Company Policy", href: "/policy" },
+              ].map((l) => (
+                <Link
+                  key={l.label}
+                  href={l.href}
+                  style={{
+                    fontSize: "0.875rem",
+                    color: "rgba(237,227,204,0.65)",
+                    textDecoration: "none",
+                    fontWeight: 300,
+                    transition: "color 0.2s",
+                  }}
+                >
+                  {l.label}
                 </Link>
-              </li>
-              <li>
-                <Link href="/#about" className="hover:underline">
-                  About
-                </Link>
-              </li>
-              <li>
-                <Link href="/#contact" className="hover:underline">
-                  Contact
-                </Link>
-              </li>
-            </ul>
+              ))}
+            </nav>
           </div>
 
           {/* Support */}
           <div>
-            <h4 className="font-semibold mb-3">Support</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="/admin/login" className="hover:underline">
-                  Admin
-                </Link>
-              </li>
-              <li>
-                <a
-                  href="mailto:info@mediba-organic.com"
-                  className="hover:underline"
-                >
-                  Email Support
-                </a>
-              </li>
-            </ul>
-          </div>
-
-        </div>
-
-        {/* Divider */}
-        <div className="mt-12 border-t border-[#e1d6c3] pt-6 text-center text-sm text-[#6b5a3c]">
-
-          {/* Built by */}
-          <div className="flex justify-center items-center gap-2 mb-2">
-            <span>Built by</span>
-
-            <a
-              href="https://mother-index-site.vercel.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 font-medium hover:opacity-80"
+            <p
+              style={{
+                fontSize: "0.62rem",
+                fontWeight: 600,
+                letterSpacing: "0.24em",
+                textTransform: "uppercase",
+                color: "var(--gold)",
+                marginBottom: 16,
+              }}
             >
-              <span>Foundry Systems</span>
-
-              <Image
-                src="/foundry.png"
-                alt="Foundry Systems"
-                width={18}
-                height={18}
-              />
-            </a>
+              Support
+            </p>
+            <nav style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+              <a
+                href="mailto:comingsoon@mediba-organic.com"
+                style={{
+                  fontSize: "0.875rem",
+                  color: "rgba(237,227,204,0.65)",
+                  textDecoration: "none",
+                  fontWeight: 300,
+                  transition: "color 0.2s",
+                }}
+              >
+                Email Support
+              </a>
+              <Link
+                href="/admin/login"
+                style={{
+                  fontSize: "0.875rem",
+                  color: "rgba(237,227,204,0.65)",
+                  textDecoration: "none",
+                  fontWeight: 300,
+                  transition: "color 0.2s",
+                }}
+              >
+                Admin
+              </Link>
+            </nav>
+            <p
+              style={{
+                marginTop: 16,
+                fontSize: "0.75rem",
+                color: "rgba(237,227,204,0.35)",
+                lineHeight: 1.65,
+                fontWeight: 300,
+              }}
+            >
+              We aim to respond within<br />1–2 business days.
+            </p>
           </div>
+        </div>
+      </div>
 
-          {/* Copyright */}
-          <p>
-            © {new Date().getFullYear()} Mediba's Organic. All rights reserved.
+      {/* ── Bottom bar ── */}
+      <div
+        style={{
+          maxWidth: 1152,
+          margin: "0 auto",
+          padding: "18px 24px",
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+        }}
+      >
+        {/* Left: copyright + policy */}
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 16 }}>
+          <p style={{ fontSize: "0.76rem", color: "rgba(237,227,204,0.35)" }}>
+            © {year} Mediba&apos;s Organic. All rights reserved.
           </p>
-
+          <span style={{ color: "rgba(237,227,204,0.15)", fontSize: "0.7rem" }}>|</span>
+          <Link
+            href="/policy"
+            style={{
+              fontSize: "0.76rem",
+              color: "rgba(237,227,204,0.45)",
+              textDecoration: "none",
+              transition: "color 0.2s",
+            }}
+          >
+            Company Policy
+          </Link>
         </div>
 
+        {/* Right: built by */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: "0.76rem", color: "rgba(237,227,204,0.3)" }}>
+            Built by
+          </span>
+          <a
+            href="https://mother-index-site.vercel.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              fontSize: "0.76rem",
+              fontWeight: 500,
+              color: "rgba(237,227,204,0.5)",
+              textDecoration: "none",
+              transition: "color 0.2s",
+            }}
+          >
+            Foundry Systems
+            {/* Only render Image if /foundry.png exists in public dir */}
+            <Image
+              src="/foundry.png"
+              alt="Mother Index"
+              width={16}
+              height={16}
+              style={{ opacity: 0.5, borderRadius: 2 }}
+            />
+          </a>
+        </div>
       </div>
     </footer>
   );

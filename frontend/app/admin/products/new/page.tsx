@@ -4,16 +4,17 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase-client";
 import { ProductImageUpload } from "@/components/product-image-upload";
+import { F } from "@/lib/form-styles";
 
 export default function NewProductPage() {
   const router = useRouter();
   const supabase = createClient();
 
-  const [name, setName] = useState("");
+  const [name, setName]               = useState("");
   const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [images, setImages] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [price, setPrice]             = useState("");
+  const [images, setImages]           = useState<string[]>([]);
+  const [loading, setLoading]         = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
@@ -30,89 +31,121 @@ export default function NewProductPage() {
 
     setLoading(false);
 
-    if (error) {
-      setErrorMessage(error.message);
-      return;
-    }
+    if (error) { setErrorMessage(error.message); return; }
 
     router.push("/admin/products");
     router.refresh();
   }
 
   return (
-    <main className="min-h-screen bg-[#F8F3E9] px-4 py-14 text-[#3E2E17] sm:px-6 sm:py-16">
-      <div className="mx-auto max-w-3xl">
-        <p className="text-sm font-medium uppercase tracking-[0.2em] text-[#8B6B2C]">
-          New Product
+    <main
+      style={{
+        minHeight: "100vh",
+        background: "var(--cream)",
+        padding: "64px 24px 96px",
+        fontFamily: "'Jost', sans-serif",
+      }}
+    >
+      <div style={{ maxWidth: 720, margin: "0 auto" }}>
+
+        <p
+          style={{
+            fontSize: "0.62rem",
+            fontWeight: 600,
+            letterSpacing: "0.22em",
+            textTransform: "uppercase",
+            color: "var(--gold)",
+            marginBottom: 6,
+          }}
+        >
+          Admin · Products
         </p>
-        <h1 className="mt-2 text-3xl font-bold sm:text-4xl">Add Product</h1>
-        <p className="mt-3 text-[#6B7D52]">
-          Create a new product for the Mediba’s Organic store.
+        <h1
+          style={{
+            fontFamily: "'Cormorant Garamond', serif",
+            fontSize: "clamp(1.9rem, 3vw, 2.6rem)",
+            fontWeight: 600,
+            color: "var(--brown)",
+            lineHeight: 1.1,
+            marginBottom: 6,
+          }}
+        >
+          Add Product
+        </h1>
+        <p style={{ fontSize: "0.9rem", color: "var(--brown-light)", fontWeight: 300, marginBottom: 36 }}>
+          Create a new product for the Mediba&apos;s Organic store.
         </p>
 
         <form
           onSubmit={handleSubmit}
-          className="mt-10 rounded-3xl border border-[#E7DCC8] bg-[#FFFDF8] p-6 shadow-sm sm:p-8"
+          style={{
+            background: "var(--white)",
+            border: "1px solid var(--border)",
+            borderRadius: 8,
+            padding: "36px 32px",
+          }}
         >
-          <div>
-            <label className="mb-2 block text-sm font-medium">Product Name</label>
+          <div style={F.fieldGroup}>
+            <label style={F.label}>Product Name</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-xl border border-[#E7DCC8] bg-white px-4 py-3 outline-none transition focus:border-[#8B6B2C]"
-              placeholder="Enter product name"
+              placeholder="e.g. Raw Shea Butter 250g"
               required
+              style={F.input}
             />
           </div>
 
-          <div className="mt-6">
-            <label className="mb-2 block text-sm font-medium">Description</label>
+          <div style={F.fieldGroup}>
+            <label style={F.label}>Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="min-h-[140px] w-full rounded-xl border border-[#E7DCC8] bg-white px-4 py-3 outline-none transition focus:border-[#556B2F]"
-              placeholder="Enter product description"
+              placeholder="Describe the product — ingredients, benefits, usage..."
               required
+              style={F.textarea}
             />
           </div>
 
-          <div className="mt-6">
-            <label className="mb-2 block text-sm font-medium">Price</label>
+          <div style={F.fieldGroup}>
+            <label style={F.label}>Price (USD)</label>
             <input
               type="number"
               step="0.01"
               min="0"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              className="w-full rounded-xl border border-[#E7DCC8] bg-white px-4 py-3 outline-none transition focus:border-[#8B6B2C]"
-              placeholder="Enter price"
+              placeholder="0.00"
               required
+              style={F.input}
             />
           </div>
 
-          <div className="mt-6">
-            <label className="mb-2 block text-sm font-medium">Product Images</label>
+          <div style={F.fieldGroup}>
+            <label style={F.label}>Product Images</label>
             <ProductImageUpload value={images} onChange={setImages} />
           </div>
 
-          {errorMessage ? (
-            <p className="mt-6 text-sm text-red-600">{errorMessage}</p>
-          ) : null}
+          {errorMessage && (
+            <p style={{ fontSize: "0.82rem", color: "#c0392b", marginBottom: 16 }}>
+              {errorMessage}
+            </p>
+          )}
 
-          <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:flex-wrap">
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 8 }}>
             <button
               type="submit"
               disabled={loading}
-              className="rounded-xl bg-[#8B6B2C] px-6 py-3 font-medium text-white transition hover:bg-[#715622] disabled:cursor-not-allowed disabled:opacity-70"
+              className="btn-primary"
+              style={{ opacity: loading ? 0.7 : 1 }}
             >
               {loading ? "Saving..." : "Save Product"}
             </button>
-
             <button
               type="button"
               onClick={() => router.push("/admin/products")}
-              className="rounded-xl border border-[#556B2F] px-6 py-3 font-medium text-[#556B2F] transition hover:bg-[#556B2F] hover:text-white"
+              className="btn-outline"
             >
               Cancel
             </button>
