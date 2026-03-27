@@ -200,30 +200,84 @@ export function Navbar() {
             style={{
               borderTop: "1px solid var(--border)",
               background: "var(--cream)",
-              padding: "16px 24px 24px",
+              padding: "8px 24px 28px",
             }}
             className="show-mobile"
           >
-            {links.map((l) => (
+            {links.map((l, i) => (
               <Link
                 key={l.label}
                 href={l.href}
                 onClick={() => setMenuOpen(false)}
                 style={{
-                  display: "block",
-                  padding: "12px 0",
-                  fontSize: "0.9rem",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "18px 0",
+                  fontSize: "1.05rem",
                   fontWeight: 500,
-                  letterSpacing: "0.08em",
+                  letterSpacing: "0.06em",
                   textTransform: "uppercase",
                   color: "var(--brown)",
                   textDecoration: "none",
-                  borderBottom: "1px solid var(--border)",
+                  borderBottom: i < links.length - 1 ? "1px solid var(--border)" : "none",
+                  fontFamily: "'Jost', sans-serif",
                 }}
               >
                 {l.label}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-muted)" strokeWidth="2">
+                  <path d="M9 18l6-6-6-6"/>
+                </svg>
               </Link>
             ))}
+
+            {/* Cart link in mobile menu */}
+            <Link
+              href="/cart"
+              onClick={() => setMenuOpen(false)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                marginTop: 20,
+                background: "var(--gold)",
+                color: "#fff",
+                padding: "14px 20px",
+                borderRadius: 4,
+                textDecoration: "none",
+                fontFamily: "'Jost', sans-serif",
+                fontSize: "0.85rem",
+                fontWeight: 500,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                justifyContent: "center",
+              }}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <path d="M16 10a4 4 0 01-8 0"/>
+              </svg>
+              View Cart
+              {itemCount > 0 && (
+                <span
+                  style={{
+                    background: "var(--brown)",
+                    color: "var(--gold-light)",
+                    borderRadius: "50%",
+                    width: 20,
+                    height: 20,
+                    fontSize: "0.65rem",
+                    fontWeight: 700,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {itemCount}
+                </span>
+              )}
+            </Link>
           </div>
         )}
       </nav>

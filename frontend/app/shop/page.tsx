@@ -28,49 +28,99 @@ export default async function ShopPage() {
   });
 
   return (
-    <main className="min-h-screen bg-[#F8F3E9] px-4 py-14 text-[#3E2E17] sm:px-6 sm:py-16">
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-10">
-          <p className="text-sm font-medium uppercase tracking-[0.2em] text-[#8B6B2C]">
-            Shop
-          </p>
-          <h1 className="mt-2 text-3xl font-bold sm:text-4xl">All Products</h1>
-          <p className="mt-3 max-w-2xl text-[#6B7D52]">
-            Explore our collection of natural shea butter products crafted for everyday care.
-          </p>
+    <main style={{ minHeight: "100vh", background: "var(--cream)", padding: "56px 20px 80px", fontFamily: "'Jost', sans-serif" }}>
+      <div style={{ maxWidth: 1152, margin: "0 auto" }}>
+        <div style={{ marginBottom: 48 }}>
 
-          <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:flex-wrap">
-            <a
-              href="/cart"
-              className="rounded-xl bg-[#556B2F] px-5 py-3 text-center font-medium text-white transition hover:bg-[#445624]"
-            >
-              View Cart
+          {/* Breadcrumb */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              marginBottom: 20,
+              fontFamily: "'Jost', sans-serif",
+              fontSize: "0.78rem",
+              color: "var(--brown-light)",
+              fontWeight: 400,
+            }}
+          >
+            <a href="/" style={{ color: "var(--brown-light)", textDecoration: "none", transition: "color 0.15s" }}>
+              Home
             </a>
-
-            <a
-              href="/"
-              className="rounded-xl border border-[#8B6B2C] px-5 py-3 text-center font-medium text-[#8B6B2C] transition hover:bg-[#8B6B2C] hover:text-white"
-            >
-              Back Home
-            </a>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--gold-muted)" strokeWidth="2.5">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+            <span style={{ color: "var(--gold)", fontWeight: 500 }}>Shop</span>
           </div>
+
+          <p className="section-label">Our Collection</p>
+          <h1
+            style={{
+              fontFamily: "'Cormorant Garamond', serif",
+              fontSize: "clamp(2rem, 5vw, 3.2rem)",
+              fontWeight: 600,
+              color: "var(--brown)",
+              lineHeight: 1.1,
+              marginBottom: 12,
+            }}
+          >
+            All Products
+          </h1>
+          <p
+            style={{
+              fontFamily: "'Jost', sans-serif",
+              fontSize: "0.95rem",
+              color: "var(--brown-light)",
+              fontWeight: 300,
+              maxWidth: 480,
+              lineHeight: 1.75,
+            }}
+          >
+            Natural shea butter products crafted for everyday skin care.
+          </p>
         </div>
 
         {error ? (
-          <pre className="overflow-x-auto rounded-lg bg-red-50 p-4 text-red-600">
+          <pre
+            style={{
+              background: "#fff5f5",
+              color: "#c53030",
+              padding: 16,
+              borderRadius: 6,
+              overflow: "auto",
+              fontSize: "0.85rem",
+            }}
+          >
             {JSON.stringify(error, null, 2)}
           </pre>
         ) : products.length === 0 ? (
-          <div className="rounded-2xl border border-[#E7DCC8] bg-[#FFFDF8] p-10 text-center shadow-sm">
-            <h2 className="text-2xl font-semibold text-[#3E2E17]">
+          <div
+            style={{
+              background: "var(--white)",
+              border: "1px solid var(--border)",
+              borderRadius: 8,
+              padding: "56px 24px",
+              textAlign: "center",
+            }}
+          >
+            <p
+              style={{
+                fontFamily: "'Cormorant Garamond', serif",
+                fontSize: "1.6rem",
+                fontWeight: 600,
+                color: "var(--brown)",
+                marginBottom: 10,
+              }}
+            >
               No products available yet
-            </h2>
-            <p className="mt-3 text-[#6B7D52]">
+            </p>
+            <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.9rem", color: "var(--brown-light)", fontWeight: 300 }}>
               Products will appear here once they are added to the store.
             </p>
           </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="products-grid">
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
