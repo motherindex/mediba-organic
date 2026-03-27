@@ -30,14 +30,7 @@ export default async function Home() {
     <main style={{ minHeight: "100vh", background: "var(--cream)" }}>
 
       {/* ── HERO ─────────────────────────────────────────── */}
-      <section
-        style={{
-          position: "relative",
-          overflow: "hidden",
-          padding: "80px 24px 96px",
-          background: "linear-gradient(160deg, var(--cream) 0%, var(--cream-dark) 60%, var(--parchment) 100%)",
-        }}
-      >
+      <section className="hero-section">
         {/* Decorative circle */}
         <div
           aria-hidden
@@ -73,12 +66,12 @@ export default async function Home() {
             className="fade-up fade-up-delay-1"
             style={{
               fontFamily: "'Cormorant Garamond', serif",
-              fontSize: "clamp(2.6rem, 6vw, 5rem)",
+              fontSize: "clamp(2.2rem, 6vw, 5rem)",
               fontWeight: 600,
               lineHeight: 1.1,
               color: "var(--brown)",
               maxWidth: 780,
-              marginBottom: 24,
+              marginBottom: 20,
             }}
           >
             Natural shea butter made to{" "}
@@ -89,11 +82,11 @@ export default async function Home() {
           <p
             className="fade-up fade-up-delay-2"
             style={{
-              fontSize: "1.05rem",
+              fontSize: "1rem",
               color: "var(--brown-light)",
               maxWidth: 520,
               lineHeight: 1.75,
-              marginBottom: 36,
+              marginBottom: 32,
               fontFamily: "'Jost', sans-serif",
               fontWeight: 300,
             }}
@@ -104,7 +97,7 @@ export default async function Home() {
 
           <div
             className="fade-up fade-up-delay-3"
-            style={{ display: "flex", flexWrap: "wrap", gap: 14 }}
+            style={{ display: "flex", flexWrap: "wrap", gap: 12 }}
           >
             <a href="/shop" className="btn-primary">
               Shop Now
@@ -119,14 +112,7 @@ export default async function Home() {
 
           {/* Trust badges */}
           <div
-            className="fade-up fade-up-delay-4"
-            style={{
-              marginTop: 56,
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 28,
-              alignItems: "center",
-            }}
+            className="fade-up fade-up-delay-4 trust-badges"
           >
             {[
               { icon: "🌿", label: "100% Organic" },
@@ -156,21 +142,14 @@ export default async function Home() {
       </section>
 
       {/* ── WHY SHEA BUTTER ──────────────────────────────── */}
-      <section
-        style={{
-          background: "var(--white)",
-          borderTop: "1px solid var(--border)",
-          borderBottom: "1px solid var(--border)",
-          padding: "80px 24px",
-        }}
-      >
+      <section className="content-section white-section">
         <div style={{ maxWidth: 1152, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 52 }}>
+          <div style={{ textAlign: "center", marginBottom: 48 }}>
             <p className="section-label">The Benefits</p>
             <h2
               style={{
                 fontFamily: "'Cormorant Garamond', serif",
-                fontSize: "clamp(2rem, 4vw, 3rem)",
+                fontSize: "clamp(1.8rem, 4vw, 3rem)",
                 fontWeight: 600,
                 color: "var(--brown)",
               }}
@@ -182,8 +161,8 @@ export default async function Home() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-              gap: 24,
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gap: 20,
             }}
           >
             {[
@@ -210,10 +189,10 @@ export default async function Home() {
                   background: "var(--cream)",
                   border: "1px solid var(--border)",
                   borderRadius: 8,
-                  padding: "32px 28px",
+                  padding: "28px 24px",
                 }}
               >
-                <span style={{ fontSize: "1.8rem", display: "block", marginBottom: 16 }}>
+                <span style={{ fontSize: "1.8rem", display: "block", marginBottom: 14 }}>
                   {card.icon}
                 </span>
                 <h3
@@ -245,10 +224,7 @@ export default async function Home() {
       </section>
 
       {/* ── FEATURED PRODUCTS ────────────────────────────── */}
-      <section
-        id="featured-products"
-        style={{ padding: "80px 24px", background: "var(--cream)" }}
-      >
+      <section id="featured-products" className="content-section">
         <div style={{ maxWidth: 1152, margin: "0 auto" }}>
           <div
             style={{
@@ -257,7 +233,7 @@ export default async function Home() {
               alignItems: "flex-end",
               justifyContent: "space-between",
               gap: 16,
-              marginBottom: 40,
+              marginBottom: 36,
             }}
           >
             <div>
@@ -265,7 +241,7 @@ export default async function Home() {
               <h2
                 style={{
                   fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: "clamp(1.8rem, 3.5vw, 2.6rem)",
+                  fontSize: "clamp(1.6rem, 3.5vw, 2.6rem)",
                   fontWeight: 600,
                   color: "var(--brown)",
                 }}
@@ -309,13 +285,7 @@ export default async function Home() {
               {JSON.stringify(error, null, 2)}
             </pre>
           ) : (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                gap: 24,
-              }}
-            >
+            <div className="products-grid">
               {products.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -327,12 +297,7 @@ export default async function Home() {
       {/* ── ABOUT ─────────────────────────────────────────── */}
       <section
         id="about"
-        style={{
-          background: "var(--white)",
-          borderTop: "1px solid var(--border)",
-          borderBottom: "1px solid var(--border)",
-          padding: "80px 24px",
-        }}
+        className="content-section white-section"
       >
         <div
           style={{
@@ -340,7 +305,7 @@ export default async function Home() {
             margin: "0 auto",
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: 56,
+            gap: 48,
             alignItems: "center",
           }}
         >
@@ -349,7 +314,7 @@ export default async function Home() {
             <h2
               style={{
                 fontFamily: "'Cormorant Garamond', serif",
-                fontSize: "clamp(1.9rem, 3.5vw, 2.8rem)",
+                fontSize: "clamp(1.7rem, 3.5vw, 2.8rem)",
                 fontWeight: 600,
                 color: "var(--brown)",
                 marginBottom: 20,
@@ -392,7 +357,7 @@ export default async function Home() {
             style={{
               display: "grid",
               gridTemplateColumns: "1fr 1fr",
-              gap: 16,
+              gap: 14,
             }}
           >
             {[
@@ -407,14 +372,14 @@ export default async function Home() {
                   background: "var(--cream)",
                   border: "1px solid var(--border)",
                   borderRadius: 8,
-                  padding: "24px 20px",
+                  padding: "20px 16px",
                   textAlign: "center",
                 }}
               >
                 <p
                   style={{
                     fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: "2rem",
+                    fontSize: "1.9rem",
                     fontWeight: 700,
                     color: "var(--gold)",
                     lineHeight: 1,
@@ -426,7 +391,7 @@ export default async function Home() {
                 <p
                   style={{
                     fontFamily: "'Jost', sans-serif",
-                    fontSize: "0.75rem",
+                    fontSize: "0.72rem",
                     color: "var(--brown-light)",
                     letterSpacing: "0.08em",
                     textTransform: "uppercase",
@@ -442,13 +407,13 @@ export default async function Home() {
       </section>
 
       {/* ── CONTACT ──────────────────────────────────────── */}
-      <section id="contact" style={{ padding: "80px 24px", background: "var(--cream)" }}>
+      <section id="contact" className="content-section">
         <div style={{ maxWidth: 1152, margin: "0 auto" }}>
           <p className="section-label">Get in Touch</p>
           <h2
             style={{
               fontFamily: "'Cormorant Garamond', serif",
-              fontSize: "clamp(1.9rem, 3.5vw, 2.8rem)",
+              fontSize: "clamp(1.7rem, 3.5vw, 2.8rem)",
               fontWeight: 600,
               color: "var(--brown)",
               marginBottom: 12,
@@ -461,7 +426,7 @@ export default async function Home() {
               fontFamily: "'Jost', sans-serif",
               fontSize: "0.95rem",
               color: "var(--brown-light)",
-              marginBottom: 36,
+              marginBottom: 32,
               fontWeight: 300,
             }}
           >
@@ -479,7 +444,7 @@ export default async function Home() {
               {
                 icon: "✉",
                 title: "Email",
-                body: "comingsoon@mediba-organic.com",
+                body: "medibaorganic@gmail.com",
                 note: "We aim to respond within 1–2 business days.",
               },
               {

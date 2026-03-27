@@ -18,7 +18,7 @@ export default async function AdminProductsPage() {
       style={{
         minHeight: "100vh",
         background: "var(--cream)",
-        padding: "64px 24px 96px",
+        padding: "48px 20px 80px",
         fontFamily: "'Jost', sans-serif",
       }}
     >
@@ -32,7 +32,7 @@ export default async function AdminProductsPage() {
             alignItems: "flex-end",
             justifyContent: "space-between",
             gap: 20,
-            marginBottom: 36,
+            marginBottom: 28,
           }}
         >
           <div>
@@ -51,7 +51,7 @@ export default async function AdminProductsPage() {
             <h1
               style={{
                 fontFamily: "'Cormorant Garamond', serif",
-                fontSize: "clamp(1.9rem, 3.5vw, 2.8rem)",
+                fontSize: "clamp(1.7rem, 3.5vw, 2.8rem)",
                 fontWeight: 600,
                 color: "var(--brown)",
                 lineHeight: 1.1,
@@ -75,11 +75,11 @@ export default async function AdminProductsPage() {
             background: "var(--white)",
             border: "1px solid var(--border)",
             borderRadius: 8,
-            overflowX: "auto",
           }}
+          className="admin-table-wrapper"
         >
           {products && products.length > 0 ? (
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.88rem" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.88rem", minWidth: 560 }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid var(--border)" }}>
                   {["Image", "Product", "Price", "Actions"].map((h) => (
@@ -87,7 +87,7 @@ export default async function AdminProductsPage() {
                       key={h}
                       style={{
                         textAlign: "left",
-                        padding: "14px 20px",
+                        padding: "14px 16px",
                         fontSize: "0.68rem",
                         fontWeight: 600,
                         letterSpacing: "0.14em",
@@ -107,33 +107,54 @@ export default async function AdminProductsPage() {
                     key={product.id}
                     style={{ borderBottom: "1px solid var(--cream-dark)", verticalAlign: "middle" }}
                   >
-                    <td style={{ padding: "14px 20px" }}>
+                    <td style={{ padding: "12px 16px", width: 64 }}>
                       <img
-                        src={product.images?.[0] || "https://via.placeholder.com/200x200.png?text=Product"}
+                        src={product.images?.[0] || "https://placehold.co/200x200/FAF6EE/C4924A?text=Product"}
                         alt={product.name}
                         style={{
-                          width: 52,
-                          height: 52,
+                          width: 48,
+                          height: 48,
                           borderRadius: 6,
                           objectFit: "cover",
                           border: "1px solid var(--border)",
+                          display: "block",
                         }}
                       />
                     </td>
                     <td
                       style={{
-                        padding: "14px 20px",
+                        padding: "12px 16px",
                         fontFamily: "'Cormorant Garamond', serif",
                         fontSize: "1.05rem",
                         fontWeight: 600,
                         color: "var(--brown)",
+                        maxWidth: 260,
                       }}
                     >
-                      {product.name}
+                      <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {product.name}
+                      </span>
+                      {product.description && (
+                        <span
+                          style={{
+                            display: "block",
+                            fontFamily: "'Jost', sans-serif",
+                            fontSize: "0.78rem",
+                            fontWeight: 300,
+                            color: "var(--brown-light)",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            marginTop: 2,
+                          }}
+                        >
+                          {product.description}
+                        </span>
+                      )}
                     </td>
                     <td
                       style={{
-                        padding: "14px 20px",
+                        padding: "12px 16px",
                         fontFamily: "'Cormorant Garamond', serif",
                         fontSize: "1.05rem",
                         fontWeight: 700,
@@ -143,8 +164,8 @@ export default async function AdminProductsPage() {
                     >
                       ${Number(product.price).toFixed(2)}
                     </td>
-                    <td style={{ padding: "14px 20px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                    <td style={{ padding: "12px 16px", whiteSpace: "nowrap" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
                         <Link
                           href={`/admin/products/${product.id}`}
                           style={{

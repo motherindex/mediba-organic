@@ -16,25 +16,48 @@ export default function NewProductPage() {
   const [images, setImages]           = useState<string[]>([]);
   const [loading, setLoading]         = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
-  async function handleSubmit(e: React.FormEvent) {
+  function validate(): string | null {
+    if (!name.trim()) return "Product name is required.";
+    if (!description.trim()) return "Description is required.";
+    if (!price || isNaN(Number(price))) return "Please enter a valid price.";
+    if (Number(price) <= 0) return "Price must be greater than $0.00.";
+    return null;
+  }
+
+  async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
-    setLoading(true);
     setErrorMessage("");
+    setSuccessMessage("");
+
+    const validationError = validate();
+    if (validationError) {
+      setErrorMessage(validationError);
+      return;
+    }
+
+    setLoading(true);
 
     const { error } = await supabase.from("products").insert({
-      name,
-      description,
+      name: name.trim(),
+      description: description.trim(),
       price: Number(price),
       images,
     });
 
     setLoading(false);
 
-    if (error) { setErrorMessage(error.message); return; }
+    if (error) {
+      setErrorMessage(error.message);
+      return;
+    }
 
-    router.push("/admin/products");
-    router.refresh();
+    setSuccessMessage("Product created successfully! Redirecting…");
+    setTimeout(() => {
+      router.push("/admin/products");
+      router.refresh();
+    }, 1200);
   }
 
   return (
@@ -42,7 +65,7 @@ export default function NewProductPage() {
       style={{
         minHeight: "100vh",
         background: "var(--cream)",
-        padding: "64px 24px 96px",
+        padding: "48px 20px 80px",
         fontFamily: "'Jost', sans-serif",
       }}
     >
@@ -63,7 +86,7 @@ export default function NewProductPage() {
         <h1
           style={{
             fontFamily: "'Cormorant Garamond', serif",
-            fontSize: "clamp(1.9rem, 3vw, 2.6rem)",
+            fontSize: "clamp(1.7rem, 3vw, 2.6rem)",
             fontWeight: 600,
             color: "var(--brown)",
             lineHeight: 1.1,
@@ -72,53 +95,61 @@ export default function NewProductPage() {
         >
           Add Product
         </h1>
-        <p style={{ fontSize: "0.9rem", color: "var(--brown-light)", fontWeight: 300, marginBottom: 36 }}>
+        <p style={{ fontSize: "0.9rem", color: "var(--brown-light)", fontWeight: 300, marginBottom: 28 }}>
           Create a new product for the Mediba&apos;s Organic store.
         </p>
 
-        <form
-          onSubmit={handleSubmit}
-          style={{
-            background: "var(--white)",
-            border: "1px solid var(--border)",
-            borderRadius: 8,
-            padding: "36px 32px",
-          }}
-        >
+        {successMessage && (
+          <div className="banner-success">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+            {successMessage}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} noValidate className="admin-form-card">
+
           <div style={F.fieldGroup}>
-            <label style={F.label}>Product Name</label>
+            <label style={F.label}>
+              Product Name <span style={{ color: "var(--gold)" }}>*</span>
+            </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Raw Shea Butter 250g"
-              required
               style={F.input}
+              disabled={loading || !!successMessage}
             />
           </div>
 
           <div style={F.fieldGroup}>
-            <label style={F.label}>Description</label>
+            <label style={F.label}>
+              Description <span style={{ color: "var(--gold)" }}>*</span>
+            </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe the product — ingredients, benefits, usage..."
-              required
+              placeholder="Describe the product — ingredients, benefits, usage…"
               style={F.textarea}
+              disabled={loading || !!successMessage}
             />
           </div>
 
           <div style={F.fieldGroup}>
-            <label style={F.label}>Price (USD)</label>
+            <label style={F.label}>
+              Price (USD) <span style={{ color: "var(--gold)" }}>*</span>
+            </label>
             <input
               type="number"
               step="0.01"
-              min="0"
+              min="0.01"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               placeholder="0.00"
-              required
               style={F.input}
+              disabled={loading || !!successMessage}
             />
           </div>
 
@@ -128,24 +159,25 @@ export default function NewProductPage() {
           </div>
 
           {errorMessage && (
-            <p style={{ fontSize: "0.82rem", color: "#c0392b", marginBottom: 16 }}>
+            <div className="banner-error">
               {errorMessage}
-            </p>
+            </div>
           )}
 
           <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 8 }}>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !!successMessage}
               className="btn-primary"
-              style={{ opacity: loading ? 0.7 : 1 }}
+              style={{ opacity: loading || successMessage ? 0.7 : 1 }}
             >
-              {loading ? "Saving..." : "Save Product"}
+              {loading ? "Saving…" : "Save Product"}
             </button>
             <button
               type="button"
               onClick={() => router.push("/admin/products")}
               className="btn-outline"
+              disabled={loading}
             >
               Cancel
             </button>
