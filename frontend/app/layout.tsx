@@ -53,8 +53,10 @@ export default function RootLayout({
       >
         <CartProvider>
           <Navbar />
-          {children}
-          <Footer />
+          <div style={{ paddingTop: 68 }}>
+            {children}
+            <Footer />
+          </div>
         </CartProvider>
       </body>
     </html>

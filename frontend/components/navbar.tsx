@@ -2,15 +2,36 @@
 
 import Link from "next/link";
 import { useCart } from "@/components/cart-context";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export function Navbar() {
   const { itemCount } = useCart();
+  const [visible, setVisible] = useState(true);
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const lastScrollY = useRef(0);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
+    const onScroll = () => {
+      const current = window.scrollY;
+      const atTop = current < 10;
+
+      setScrolled(current > 20);
+
+      if (atTop) {
+        setVisible(true);
+      } else if (current > lastScrollY.current) {
+        // scrolling down — hide
+        setVisible(false);
+        setMenuOpen(false);
+      } else {
+        // scrolling up — show
+        setVisible(true);
+      }
+
+      lastScrollY.current = current;
+    };
+
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -26,15 +47,18 @@ export function Navbar() {
     <>
       <nav
         style={{
-          position: "sticky",
+          position: "fixed",
           top: 0,
+          left: 0,
+          right: 0,
           zIndex: 50,
           background: scrolled ? "rgba(250,246,238,0.97)" : "var(--cream)",
           borderBottom: `1px solid ${scrolled ? "var(--border)" : "transparent"}`,
           backdropFilter: scrolled ? "blur(12px)" : "none",
-          transition: "background 0.3s, border-color 0.3s, box-shadow 0.3s",
           boxShadow: scrolled ? "0 2px 20px rgba(62,46,23,0.06)" : "none",
           fontFamily: "'Jost', sans-serif",
+          transform: visible ? "translateY(0)" : "translateY(-100%)",
+          transition: "transform 0.3s ease, background 0.3s, border-color 0.3s, box-shadow 0.3s",
         }}
       >
         <div
