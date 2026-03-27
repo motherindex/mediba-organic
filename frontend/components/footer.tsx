@@ -148,7 +148,7 @@ export default function Footer() {
             </p>
             <nav style={{ display: "flex", flexDirection: "column", gap: 11 }}>
               <a
-                href="mailto:comingsoon@mediba-organic.com"
+                href="mailto:medibaorganic@gmail.com"
                 style={{
                   fontSize: "0.875rem",
                   color: "rgba(237,227,204,0.65)",

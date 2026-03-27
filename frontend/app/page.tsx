@@ -444,7 +444,7 @@ export default async function Home() {
               {
                 icon: "✉",
                 title: "Email",
-                body: "medibaorganic@gmail.com",
+                body: <a href="mailto:medibaorganic@gmail.com" style={{ color: "var(--brown)", textDecoration: "none", borderBottom: "1px solid var(--gold-muted)" }}>medibaorganic@gmail.com</a>,
                 note: "We aim to respond within 1–2 business days.",
               },
               {
