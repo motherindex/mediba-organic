@@ -39,7 +39,8 @@ export async function POST(request: Request) {
   }
 
   if (event.type === "checkout.session.completed") {
-    const session = event.data.object as Stripe.Checkout.Session;
+    // Cast to any to handle Stripe SDK type differences across versions
+    const session = event.data.object as any;
 
     const customerEmail = session.customer_details?.email ?? null;
     const customerName = session.customer_details?.name ?? null;
