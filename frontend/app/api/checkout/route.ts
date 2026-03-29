@@ -17,20 +17,18 @@ const supabase = createClient(
 
 export async function POST(request: Request) {
   try {
-    // Pull Stripe keys from Supabase settings (client-entered)
-    const { stripe_secret_key, stripe_webhook_secret } = await getSettings([
-      "stripe_secret_key",
-      "stripe_webhook_secret",
-    ]);
+    const { stripe_secret_key } = await getSettings(["stripe_secret_key"]);
 
-    if (!stripe_secret_key) {
+    const stripeKey = stripe_secret_key || process.env.STRIPE_SECRET_KEY!;
+
+    if (!stripeKey) {
       return NextResponse.json(
         { error: "Stripe is not configured yet. Please contact the store admin." },
         { status: 503 }
       );
     }
 
-    const stripe = new Stripe(stripe_secret_key, { apiVersion: "2024-04-10" });
+    const stripe = new Stripe(stripeKey);
 
     const body = await request.json();
     const items: CheckoutItemInput[] = Array.isArray(body?.items) ? body.items : [];
