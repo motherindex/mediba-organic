@@ -15,7 +15,12 @@ const supabaseAdmin = createClient(
 );
 
 // GET — fetch single order
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(
+  _: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -23,16 +28,20 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
   const { data: order, error } = await supabaseAdmin
     .from("orders")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 404 });
-
   return NextResponse.json({ order });
 }
 
 // PATCH — update order status + send email
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -40,7 +49,6 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   const body = await request.json();
   const { status, tracking_number, carrier } = body;
 
-  // Update order in Supabase
   const { data: order, error } = await supabaseAdmin
     .from("orders")
     .update({
@@ -49,7 +57,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       carrier: carrier ?? null,
       updated_at: new Date().toISOString(),
     })
-    .eq("id", params.id)
+    .eq("id", id)
     .select()
     .single();
 

@@ -9,11 +9,16 @@ const supabaseAdmin = createClient(
 );
 
 // GET — single product
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(
+  _: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+
   const { data, error } = await supabaseAdmin
     .from("products")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 404 });
@@ -21,7 +26,12 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
 }
 
 // PATCH — update product (admin only)
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -36,7 +46,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   const { data, error } = await supabaseAdmin
     .from("products")
     .update({ name, description, price: Number(price), images: images ?? [] })
-    .eq("id", params.id)
+    .eq("id", id)
     .select()
     .single();
 
@@ -45,23 +55,30 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 }
 
 // DELETE — delete product (admin only)
-export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+export async function DELETE(
+  _: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  // Also delete images from storage
+  // Delete images from storage first
   const { data: product } = await supabaseAdmin
     .from("products")
     .select("images")
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   if (product?.images?.length) {
-    const paths = product.images.map((url: string) => {
-      const parts = url.split("/product-images/");
-      return parts[1] ?? "";
-    }).filter(Boolean);
+    const paths = product.images
+      .map((url: string) => {
+        const parts = url.split("/product-images/");
+        return parts[1] ?? "";
+      })
+      .filter(Boolean);
 
     if (paths.length) {
       await supabaseAdmin.storage.from("product-images").remove(paths);
@@ -71,7 +88,7 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
   const { error } = await supabaseAdmin
     .from("products")
     .delete()
-    .eq("id", params.id);
+    .eq("id", id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
