@@ -1,3 +1,7 @@
+// app/shop/page.tsx
+
+export const revalidate = 0; // ← THIS is the fix. Disables Next.js caching so new products always load fresh from Supabase.
+
 import { supabase } from "@/lib/supabase";
 import { ProductCard } from "@/components/product-card";
 import { Product } from "@/types/product";

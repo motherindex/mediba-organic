@@ -1,4 +1,5 @@
 "use client";
+// components/checkout-button.tsx
 
 import { useState } from "react";
 import { useCart } from "@/components/cart-context";
@@ -6,16 +7,14 @@ import { useCart } from "@/components/cart-context";
 export function CheckoutButton() {
   const { items } = useCart();
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
-  async function handleCheckout() {
+  const handleCheckout = async () => {
     setLoading(true);
-    setErrorMessage("");
-    setSuccessMessage("");
+    setError(null);
 
     try {
-      const response = await fetch("/api/checkout", {
+      const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -23,58 +22,49 @@ export function CheckoutButton() {
         }),
       });
 
-      const result = await response.json();
+      const data = await res.json();
 
-      if (!response.ok) {
-        setErrorMessage(result?.error || "Failed to initialize checkout.");
+      if (!res.ok || !data.url) {
+        setError(data.error ?? "Something went wrong. Please try again.");
         setLoading(false);
         return;
       }
 
-      setSuccessMessage("Cart validated. Checkout will be connected to Stripe soon.");
-    } catch {
-      setErrorMessage("Something went wrong while preparing checkout.");
-    } finally {
+      // Redirect to Stripe Checkout
+      window.location.href = data.url;
+    } catch (err) {
+      setError("Network error. Please try again.");
       setLoading(false);
     }
-  }
+  };
 
   return (
-    <div style={{ marginTop: 16 }}>
+    <div style={{ marginTop: 20 }}>
+      {error && (
+        <p
+          style={{
+            fontFamily: "'Jost', sans-serif",
+            fontSize: "0.82rem",
+            color: "#c53030",
+            marginBottom: 10,
+            textAlign: "center",
+          }}
+        >
+          {error}
+        </p>
+      )}
       <button
         onClick={handleCheckout}
         disabled={loading || items.length === 0}
         className="btn-primary"
-        style={{ width: "100%", justifyContent: "center", opacity: items.length === 0 ? 0.5 : 1 }}
+        style={{
+          width: "100%",
+          opacity: loading || items.length === 0 ? 0.6 : 1,
+          cursor: loading || items.length === 0 ? "not-allowed" : "pointer",
+        }}
       >
-        {loading ? "Preparing..." : "Proceed to Checkout"}
+        {loading ? "Redirecting to checkout…" : "Proceed to Checkout"}
       </button>
-
-      {errorMessage && (
-        <p
-          style={{
-            marginTop: 10,
-            fontFamily: "'Jost', sans-serif",
-            fontSize: "0.82rem",
-            color: "#c0392b",
-          }}
-        >
-          {errorMessage}
-        </p>
-      )}
-
-      {successMessage && (
-        <p
-          style={{
-            marginTop: 10,
-            fontFamily: "'Jost', sans-serif",
-            fontSize: "0.82rem",
-            color: "var(--green)",
-          }}
-        >
-          {successMessage}
-        </p>
-      )}
     </div>
   );
 }

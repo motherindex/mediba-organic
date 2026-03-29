@@ -1,15 +1,14 @@
 "use client";
+// app/admin/products/[id]/page.tsx
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase-client";
 import { ProductImageUpload } from "@/components/product-image-upload";
 import { F } from "@/lib/form-styles";
 
 export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
-  const supabase = createClient();
   const id = params.id as string;
 
   const [name, setName]               = useState("");
@@ -22,25 +21,26 @@ export default function EditProductPage() {
   const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
-    async function loadProduct() {
-      const { data, error } = await supabase
-        .from("products").select("*").eq("id", id).single();
-
-      if (error || !data) {
-        setErrorMessage("Could not load product.");
+    if (!id) return;
+    fetch(`/api/products/${id}`)
+      .then((r) => r.json())
+      .then(({ product, error }) => {
+        if (error || !product) {
+          setErrorMessage("Could not load product.");
+          setLoading(false);
+          return;
+        }
+        setName(product.name ?? "");
+        setDescription(product.description ?? "");
+        setPrice(product.price?.toString() ?? "");
+        setImages(Array.isArray(product.images) ? product.images : []);
         setLoading(false);
-        return;
-      }
-
-      setName(data.name ?? "");
-      setDescription(data.description ?? "");
-      setPrice(data.price?.toString() ?? "");
-      setImages(data.images?.length > 0 ? data.images : []);
-      setLoading(false);
-    }
-
-    if (id) loadProduct();
-  }, [id, supabase]);
+      })
+      .catch(() => {
+        setErrorMessage("Failed to load product.");
+        setLoading(false);
+      });
+  }, [id]);
 
   function validate(): string | null {
     if (!name.trim()) return "Product name is required.";
@@ -63,23 +63,30 @@ export default function EditProductPage() {
 
     setSaving(true);
 
-    const { error } = await supabase
-      .from("products")
-      .update({ name: name.trim(), description: description.trim(), price: Number(price), images })
-      .eq("id", id);
+    const res = await fetch(`/api/products/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: name.trim(),
+        description: description.trim(),
+        price: Number(price),
+        images,
+      }),
+    });
 
+    const data = await res.json();
     setSaving(false);
 
-    if (error) {
-      setErrorMessage(error.message);
+    if (!res.ok) {
+      setErrorMessage(data.error ?? "Failed to save changes.");
       return;
     }
 
-    setSuccessMessage("Changes saved successfully! Redirecting…");
+    setSuccessMessage("Changes saved! Redirecting…");
     setTimeout(() => {
       router.push("/admin/products");
       router.refresh();
-    }, 1200);
+    }, 1000);
   }
 
   if (loading) {
@@ -93,38 +100,13 @@ export default function EditProductPage() {
   }
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "var(--cream)",
-        padding: "48px 20px 80px",
-        fontFamily: "'Jost', sans-serif",
-      }}
-    >
+    <main style={{ minHeight: "100vh", background: "var(--cream)", padding: "48px 20px 80px", fontFamily: "'Jost', sans-serif" }}>
       <div style={{ maxWidth: 720, margin: "0 auto" }}>
 
-        <p
-          style={{
-            fontSize: "0.62rem",
-            fontWeight: 600,
-            letterSpacing: "0.22em",
-            textTransform: "uppercase",
-            color: "var(--gold)",
-            marginBottom: 6,
-          }}
-        >
+        <p style={{ fontSize: "0.62rem", fontWeight: 600, letterSpacing: "0.22em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 6 }}>
           Admin · Products
         </p>
-        <h1
-          style={{
-            fontFamily: "'Cormorant Garamond', serif",
-            fontSize: "clamp(1.7rem, 3vw, 2.6rem)",
-            fontWeight: 600,
-            color: "var(--brown)",
-            lineHeight: 1.1,
-            marginBottom: 6,
-          }}
-        >
+        <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(1.7rem, 3vw, 2.6rem)", fontWeight: 600, color: "var(--brown)", lineHeight: 1.1, marginBottom: 6 }}>
           Edit Product
         </h1>
         <p style={{ fontSize: "0.9rem", color: "var(--brown-light)", fontWeight: 300, marginBottom: 28 }}>
@@ -141,45 +123,19 @@ export default function EditProductPage() {
         )}
 
         <form onSubmit={handleSubmit} noValidate className="admin-form-card">
-
           <div style={F.fieldGroup}>
-            <label style={F.label}>
-              Product Name <span style={{ color: "var(--gold)" }}>*</span>
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              style={F.input}
-              disabled={saving || !!successMessage}
-            />
+            <label style={F.label}>Product Name <span style={{ color: "var(--gold)" }}>*</span></label>
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} style={F.input} disabled={saving || !!successMessage} />
           </div>
 
           <div style={F.fieldGroup}>
-            <label style={F.label}>
-              Description <span style={{ color: "var(--gold)" }}>*</span>
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              style={F.textarea}
-              disabled={saving || !!successMessage}
-            />
+            <label style={F.label}>Description <span style={{ color: "var(--gold)" }}>*</span></label>
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} style={F.textarea} disabled={saving || !!successMessage} />
           </div>
 
           <div style={F.fieldGroup}>
-            <label style={F.label}>
-              Price (USD) <span style={{ color: "var(--gold)" }}>*</span>
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              min="0.01"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              style={F.input}
-              disabled={saving || !!successMessage}
-            />
+            <label style={F.label}>Price (USD) <span style={{ color: "var(--gold)" }}>*</span></label>
+            <input type="number" step="0.01" min="0.01" value={price} onChange={(e) => setPrice(e.target.value)} style={F.input} disabled={saving || !!successMessage} />
           </div>
 
           <div style={F.fieldGroup}>
@@ -187,27 +143,13 @@ export default function EditProductPage() {
             <ProductImageUpload value={images} onChange={setImages} />
           </div>
 
-          {errorMessage && (
-            <div className="banner-error">
-              {errorMessage}
-            </div>
-          )}
+          {errorMessage && <div className="banner-error">{errorMessage}</div>}
 
           <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 8 }}>
-            <button
-              type="submit"
-              disabled={saving || !!successMessage}
-              className="btn-primary"
-              style={{ opacity: saving || successMessage ? 0.7 : 1 }}
-            >
+            <button type="submit" disabled={saving || !!successMessage} className="btn-primary" style={{ opacity: saving || successMessage ? 0.7 : 1 }}>
               {saving ? "Saving…" : "Save Changes"}
             </button>
-            <button
-              type="button"
-              onClick={() => router.push("/admin/products")}
-              className="btn-outline"
-              disabled={saving}
-            >
+            <button type="button" onClick={() => router.push("/admin/products")} className="btn-outline" disabled={saving}>
               Cancel
             </button>
           </div>

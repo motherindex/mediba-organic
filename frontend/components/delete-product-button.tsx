@@ -1,38 +1,26 @@
 "use client";
+// components/delete-product-button.tsx
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase-client";
 
-type DeleteProductButtonProps = {
-  productId: string;
-};
-
-export function DeleteProductButton({
-  productId,
-}: DeleteProductButtonProps) {
+export function DeleteProductButton({ productId }: { productId: string }) {
   const router = useRouter();
-  const supabase = createClient();
   const [loading, setLoading] = useState(false);
 
   async function handleDelete() {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this product?"
-    );
-
+    const confirmed = window.confirm("Are you sure you want to delete this product? This cannot be undone.");
     if (!confirmed) return;
 
     setLoading(true);
 
-    const { error } = await supabase
-      .from("products")
-      .delete()
-      .eq("id", productId);
+    const res = await fetch(`/api/products/${productId}`, { method: "DELETE" });
+    const data = await res.json();
 
     setLoading(false);
 
-    if (error) {
-      alert(error.message);
+    if (!res.ok) {
+      alert(data.error ?? "Failed to delete product.");
       return;
     }
 
@@ -43,9 +31,20 @@ export function DeleteProductButton({
     <button
       onClick={handleDelete}
       disabled={loading}
-      className="text-red-600 transition hover:text-red-800 disabled:cursor-not-allowed disabled:opacity-60"
+      style={{
+        fontFamily: "'Jost', sans-serif",
+        fontSize: "0.8rem",
+        fontWeight: 500,
+        letterSpacing: "0.06em",
+        color: loading ? "#aaa" : "#c0392b",
+        background: "none",
+        border: "none",
+        cursor: loading ? "not-allowed" : "pointer",
+        padding: 0,
+        transition: "color 0.15s",
+      }}
     >
-      {loading ? "Deleting..." : "Delete"}
+      {loading ? "Deleting…" : "Delete"}
     </button>
   );
 }
