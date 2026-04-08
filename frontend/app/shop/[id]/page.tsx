@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { Promotion, getProductPricing } from "@/lib/pricing";
+import { ProductImageGallery } from "@/components/product-image-gallery";
 
 type ProductPageProps = {
   params: Promise<{ id: string }>;
@@ -41,34 +42,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <div className="product-detail-grid">
           {/* Images column */}
           <div>
-            <div style={{ borderRadius: 10, overflow: "hidden", border: "1px solid var(--border)", background: "var(--white)" }}>
-              <img
-                src={product.images?.[0] || "https://placehold.co/800x800/FAF6EE/C4924A?text=Product"}
-                alt={product.name}
-                style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", display: "block" }}
-              />
-            </div>
-
-            {product.images && product.images.length > 1 && (
-              <div className="thumbnail-grid">
-                {product.images.map((image: string, index: number) => (
-                  <div
-                    key={index}
-                    style={{
-                      borderRadius: 6,
-                      overflow: "hidden",
-                      border: index === 0 ? "2px solid var(--gold)" : "1px solid var(--border)",
-                    }}
-                  >
-                    <img
-                      src={image}
-                      alt={`${product.name} view ${index + 1}`}
-                      style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", display: "block" }}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
+            <ProductImageGallery
+              images={product.images ?? []}
+              productName={product.name}
+            />
           </div>
 
           {/* Info column */}
@@ -224,17 +201,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
           display: flex;
           flex-direction: column;
           gap: 32px;
-        }
-        .thumbnail-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 8px;
-          margin-top: 12px;
-        }
-        @media (max-width: 480px) {
-          .thumbnail-grid {
-            grid-template-columns: repeat(3, 1fr);
-          }
         }
         @media (min-width: 768px) {
           .product-detail-grid {
