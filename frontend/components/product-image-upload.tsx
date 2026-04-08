@@ -178,8 +178,8 @@ export function ProductImageUpload({ value, onChange }: ProductImageUploadProps)
                     alt={`Product image ${index + 1}`}
                     style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                     onError={(e) => {
-                      // If image fails to load show placeholder
-                      (e.target as HTMLImageElement).src = "https://placehold.co/200x200/FAF6EE/C4924A?text=Image";
+                      (e.target as HTMLImageElement).src =
+                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23f0ebe3'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23c4924a' font-size='12' font-family='sans-serif'%3ENo image%3C/text%3E%3C/svg%3E";
                     }}
                   />
                 </div>

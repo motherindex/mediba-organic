@@ -14,10 +14,15 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data } = await supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from("settings")
     .select("key, value")
     .order("key");
+
+  if (error) {
+    console.error("[settings GET] Supabase error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 
   const settings: Record<string, string> = {};
   for (const row of data ?? []) {

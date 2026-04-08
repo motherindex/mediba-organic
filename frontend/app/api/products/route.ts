@@ -1,5 +1,6 @@
 // app/api/products/route.ts
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -39,5 +40,7 @@ export async function POST(request: Request) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  revalidatePath('/admin/products');
   return NextResponse.json({ product: data });
 }

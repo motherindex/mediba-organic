@@ -1,5 +1,6 @@
 // app/api/products/[id]/route.ts
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -91,5 +92,8 @@ export async function DELETE(
     .eq("id", id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  revalidatePath('/admin/products');
+  revalidatePath('/admin/products/[id]', 'page');
   return NextResponse.json({ ok: true });
 }
