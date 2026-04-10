@@ -14,7 +14,6 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// GET — fetch single order
 export async function GET(
   _: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -31,11 +30,10 @@ export async function GET(
     .eq("id", id)
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 404 });
+  if (error || !order) return NextResponse.json({ error: "Order not found." }, { status: 404 });
   return NextResponse.json({ order });
 }
 
-// PATCH — update order status + send email
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -48,7 +46,7 @@ export async function PATCH(
 
   const body = await request.json();
 
-  const allowed = ["status", "tracking_number", "carrier", "label_url", "notes"];
+  const allowed = ["status", "tracking_number", "carrier", "notes"];
   const updates: Record<string, any> = { updated_at: new Date().toISOString() };
   for (const key of allowed) {
     if (key in body) updates[key] = body[key];
@@ -61,9 +59,9 @@ export async function PATCH(
     .select()
     .single();
 
-  const { status, tracking_number, carrier } = body;
-
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  const { status, tracking_number, carrier } = body;
 
   // Send email based on new status
   let resendKey: string | null = null;

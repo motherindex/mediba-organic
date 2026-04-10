@@ -15,6 +15,14 @@ const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [generating, setGenerating] = useState(false);
+
+  // Upload tracking
+  const [showUpload, setShowUpload] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadResults, setUploadResults] = useState<{ succeeded: number; failed: number; results: any[] } | null>(null);
 
   useEffect(() => {
     fetch("/api/orders")
@@ -25,6 +33,72 @@ export default function AdminOrdersPage() {
       })
       .catch(() => setLoading(false));
   }, []);
+
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    if (selected.size === orders.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(orders.map((o) => o.id)));
+    }
+  }
+
+  async function handleExportCSV() {
+    if (selected.size === 0) return;
+    setGenerating(true);
+    const res = await fetch("/api/orders/export", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ order_ids: Array.from(selected) }),
+    });
+    setGenerating(false);
+    if (!res.ok) { alert("Failed to export orders."); return; }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `easypost-orders-${Date.now()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setSelected(new Set());
+  }
+
+  async function handleBulkShip() {
+    if (!uploadFile) return;
+    setUploading(true);
+    setUploadResults(null);
+    const form = new FormData();
+    form.append("file", uploadFile);
+    const res = await fetch("/api/orders/bulk-ship", { method: "POST", body: form });
+    const data = await res.json();
+    setUploading(false);
+    if (!res.ok) { alert(data.error ?? "Upload failed."); return; }
+    setUploadResults(data);
+    setUploadFile(null);
+    // Refresh orders list
+    const refreshed = await fetch("/api/orders").then((r) => r.json());
+    setOrders(refreshed.orders ?? []);
+  }
+
+  function downloadTemplate() {
+    const csv = "order_id,tracking_number,carrier\npaste-full-order-id-here,,USPS";
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "tracking-upload-template.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  const someSelected = selected.size > 0;
 
   if (loading) {
     return (
@@ -49,18 +123,97 @@ export default function AdminOrdersPage() {
             </h1>
             <p style={{ fontSize: "0.9rem", color: "var(--brown-light)", fontWeight: 300, marginTop: 6 }}>
               {orders.length} total order{orders.length !== 1 ? "s" : ""}
+              {someSelected && (
+                <span style={{ marginLeft: 10, color: "var(--gold)" }}>· {selected.size} selected</span>
+              )}
             </p>
           </div>
-          <Link href="/admin" className="btn-outline">← Dashboard</Link>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
+            {someSelected && (
+              <button
+                onClick={handleExportCSV}
+                disabled={generating}
+                className="btn-primary"
+                style={{ opacity: generating ? 0.7 : 1, fontSize: "0.85rem" }}
+              >
+                {generating ? "Exporting…" : `⬇ Export ${selected.size} Order${selected.size !== 1 ? "s" : ""} for EasyPost`}
+              </button>
+            )}
+            <button
+              onClick={() => { setShowUpload((v) => !v); setUploadResults(null); }}
+              className="btn-outline"
+              style={{ fontSize: "0.85rem" }}
+            >
+              📥 Upload Tracking Numbers
+            </button>
+            <Link href="/admin" className="btn-outline">← Dashboard</Link>
+          </div>
         </div>
+
+        {/* Upload section */}
+        {showUpload && (
+          <div style={{ background: "var(--white)", border: "1px solid var(--border)", borderRadius: 8, padding: "20px 24px", marginBottom: 20 }}>
+            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.1rem", fontWeight: 600, color: "var(--brown)", marginBottom: 8 }}>
+              Upload Tracking Numbers
+            </p>
+            <p style={{ fontSize: "0.82rem", color: "var(--brown-light)", fontWeight: 300, marginBottom: 16, lineHeight: 1.6 }}>
+              Upload a CSV with columns: <code>order_id</code>, <code>tracking_number</code>, <code>carrier</code> (optional, defaults to USPS).
+              Orders will be marked as shipped and customers will be notified automatically.
+            </p>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
+              <button onClick={downloadTemplate} className="btn-outline" style={{ fontSize: "0.8rem" }}>
+                ⬇ Download Template
+              </button>
+              <input
+                type="file"
+                accept=".csv"
+                onChange={(e) => setUploadFile(e.target.files?.[0] ?? null)}
+                style={{ fontSize: "0.82rem", color: "var(--brown)" }}
+              />
+            </div>
+            {uploadFile && (
+              <p style={{ fontSize: "0.78rem", color: "var(--green)", marginBottom: 12 }}>
+                ✓ {uploadFile.name} selected
+              </p>
+            )}
+            <button
+              onClick={handleBulkShip}
+              disabled={!uploadFile || uploading}
+              className="btn-primary"
+              style={{ opacity: !uploadFile || uploading ? 0.7 : 1, fontSize: "0.85rem" }}
+            >
+              {uploading ? "Uploading…" : "Mark as Shipped + Notify Customers"}
+            </button>
+            {uploadResults && (
+              <div style={{ marginTop: 16 }}>
+                <p style={{ fontSize: "0.85rem", fontWeight: 600, color: uploadResults.failed > 0 ? "#c0392b" : "var(--green)", marginBottom: 8 }}>
+                  {uploadResults.succeeded} shipped successfully{uploadResults.failed > 0 ? `, ${uploadResults.failed} failed` : " ✓"}
+                </p>
+                {uploadResults.results.filter((r: any) => !r.success).map((r: any) => (
+                  <p key={r.orderId} style={{ fontSize: "0.78rem", color: "#c0392b", margin: "2px 0" }}>
+                    ✗ {r.orderId}: {r.error}
+                  </p>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Table */}
         <div style={{ background: "var(--white)", border: "1px solid var(--border)", borderRadius: 8 }}>
           {orders.length > 0 ? (
             <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.88rem", minWidth: 640 }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.88rem", minWidth: 680 }}>
                 <thead>
                   <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                    <th style={{ padding: "14px 0 14px 16px", width: 40 }}>
+                      <input
+                        type="checkbox"
+                        checked={orders.length > 0 && selected.size === orders.length}
+                        onChange={toggleAll}
+                        style={{ cursor: "pointer", accentColor: "var(--gold)" }}
+                      />
+                    </th>
                     {["Order", "Customer", "Total", "Status", "Date", "Label", ""].map((h) => (
                       <th key={h} style={{ textAlign: "left", padding: "14px 16px 14px 0", fontSize: "0.68rem", fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--brown-light)", whiteSpace: "nowrap" }}>
                         {h}
@@ -72,13 +225,23 @@ export default function AdminOrdersPage() {
                   {orders.map((order: any) => {
                     const status = order.status ?? "pending";
                     const colors = STATUS_COLORS[status] ?? STATUS_COLORS.pending;
+                    const isChecked = selected.has(order.id);
 
                     return (
                       <tr
                         key={order.id}
-                        style={{ borderBottom: "1px solid var(--cream-dark)", verticalAlign: "middle" }}
+                        style={{ borderBottom: "1px solid var(--cream-dark)", verticalAlign: "middle", background: isChecked ? "rgba(196,146,74,0.04)" : "transparent" }}
                       >
-                        <td style={{ padding: "14px 16px 14px 16px", fontWeight: 600, color: "var(--brown)", whiteSpace: "nowrap" }}>
+                        <td style={{ padding: "14px 0 14px 16px" }}>
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => toggleSelect(order.id)}
+                            style={{ cursor: "pointer", accentColor: "var(--gold)" }}
+                          />
+                        </td>
+
+                        <td style={{ padding: "14px 16px 14px 0", fontWeight: 600, color: "var(--brown)", whiteSpace: "nowrap" }}>
                           #{order.id.slice(0, 8).toUpperCase()}
                         </td>
 

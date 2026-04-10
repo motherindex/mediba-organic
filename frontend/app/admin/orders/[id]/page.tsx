@@ -15,22 +15,6 @@ const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   cancelled:  { bg: "rgba(180,50,50,0.1)",    color: "#B43232" },
 };
 
-type Rate = {
-  id: string;
-  service: string;
-  carrier: string;
-  rate: string;
-  currency: string;
-  delivery_days: number | null;
-  est_delivery_date: string | null;
-};
-
-type LabelResult = {
-  labelUrl: string;
-  trackingNumber: string;
-  carrier: string;
-};
-
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
@@ -49,15 +33,12 @@ export default function OrderDetailPage() {
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // EasyPost label flow
-  const [rates, setRates] = useState<Rate[]>([]);
-  const [shipmentId, setShipmentId] = useState<string | null>(null);
-  const [selectedRateId, setSelectedRateId] = useState<string | null>(null);
-  const [fetchingRates, setFetchingRates] = useState(false);
-  const [ratesError, setRatesError] = useState("");
-  const [purchasingLabel, setPurchasingLabel] = useState(false);
-  const [labelError, setLabelError] = useState("");
-  const [labelResult, setLabelResult] = useState<LabelResult | null>(null);
+  // Mark as shipped
+  const [carrier, setCarrier] = useState("USPS");
+  const [trackingNumber, setTrackingNumber] = useState("");
+  const [shipping, setShipping] = useState(false);
+  const [shipSuccess, setShipSuccess] = useState("");
+  const [shipError, setShipError] = useState("");
 
   // Status update
   const [statusSaving, setStatusSaving] = useState(false);
@@ -74,73 +55,31 @@ export default function OrderDetailPage() {
       .catch(() => setLoading(false));
   }, [id]);
 
-  async function handleGetRates() {
-    setFetchingRates(true);
-    setRatesError("");
-    setRates([]);
-    setShipmentId(null);
-    setSelectedRateId(null);
-    setLabelError("");
+  async function handleMarkShipped() {
+    setShipping(true);
+    setShipError("");
+    setShipSuccess("");
 
-    const res = await fetch("/api/easypost/rates", {
-      method: "POST",
+    const res = await fetch(`/api/orders/${id}`, {
+      method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ order_id: id }),
+      body: JSON.stringify({ status: "shipped", carrier, tracking_number: trackingNumber }),
     });
 
-    const data = await res.json();
-    setFetchingRates(false);
+    setShipping(false);
 
-    if (!res.ok) {
-      setRatesError(data.error ?? "Failed to fetch rates.");
-      return;
+    if (res.ok) {
+      setOrder((prev: any) => ({ ...prev, status: "shipped", carrier, tracking_number: trackingNumber }));
+      setShipSuccess("Order marked as shipped. Customer notified via email.");
+    } else {
+      const data = await res.json();
+      setShipError(data.error ?? "Failed to mark as shipped.");
     }
-
-    setShipmentId(data.shipment_id);
-    setRates(data.rates ?? []);
-
-    if (!data.rates?.length) {
-      setRatesError("No USPS rates available for this address.");
-    }
-  }
-
-  async function handlePurchaseLabel() {
-    if (!selectedRateId || !shipmentId) return;
-    setPurchasingLabel(true);
-    setLabelError("");
-
-    const res = await fetch("/api/easypost/label", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ order_id: id, shipment_id: shipmentId, rate_id: selectedRateId }),
-    });
-
-    const data = await res.json();
-    setPurchasingLabel(false);
-
-    if (!res.ok) {
-      setLabelError(data.error ?? "Failed to purchase label.");
-      return;
-    }
-
-    setLabelResult({ labelUrl: data.labelUrl, trackingNumber: data.trackingNumber, carrier: data.carrier });
-    setOrder((prev: any) => ({
-      ...prev,
-      status: "shipped",
-      tracking_number: data.trackingNumber,
-      carrier: data.carrier,
-      label_url: data.labelUrl,
-    }));
-    setRates([]);
-    setShipmentId(null);
-    setSelectedRateId(null);
   }
 
   async function handleStatusChange(newStatus: string) {
     if (newStatus === order?.status) return;
-    if (newStatus === "cancelled" && !window.confirm("Are you sure you want to cancel this order? The customer will be notified.")) {
-      return;
-    }
+    if (newStatus === "cancelled" && !window.confirm("Cancel this order? This cannot be undone.")) return;
 
     setStatusSaving(true);
     setStatusError("");
@@ -156,7 +95,7 @@ export default function OrderDetailPage() {
 
     if (res.ok) {
       setOrder((prev: any) => ({ ...prev, status: newStatus }));
-      setStatusSuccess("Status updated.");
+      setStatusSuccess("Saved ✓");
       setTimeout(() => setStatusSuccess(""), 2500);
     } else {
       const data = await res.json();
@@ -190,7 +129,7 @@ export default function OrderDetailPage() {
         shippingAddress.city && shippingAddress.state
           ? `${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.postal_code ?? ""}`
           : shippingAddress.city ?? shippingAddress.postal_code,
-        shippingAddress.country !== "US" ? shippingAddress.country : null,
+        shippingAddress.country && shippingAddress.country !== "US" ? shippingAddress.country : null,
       ].filter(Boolean).join("\n")
     : null;
 
@@ -198,7 +137,6 @@ export default function OrderDetailPage() {
   const statusColors = STATUS_COLORS[currentStatus] ?? STATUS_COLORS.pending;
   const isShipped = currentStatus === "shipped" || currentStatus === "delivered";
   const isCancelled = currentStatus === "cancelled";
-  const showLabelSection = !isShipped && !isCancelled;
 
   return (
     <main style={{ minHeight: "100vh", background: "var(--cream)", padding: "48px 20px 80px", fontFamily: "'Jost', sans-serif" }}>
@@ -207,7 +145,7 @@ export default function OrderDetailPage() {
         {/* Back + breadcrumb */}
         <div style={{ marginBottom: 28 }}>
           <Link href="/admin/orders" style={{ fontSize: "0.8rem", color: "var(--green)", textDecoration: "none", fontWeight: 500 }}>
-            ← Orders
+            ← Back to Orders
           </Link>
           <p style={{ fontSize: "0.62rem", fontWeight: 600, letterSpacing: "0.22em", textTransform: "uppercase", color: "var(--gold)", marginTop: 16, marginBottom: 6 }}>
             Admin · Orders · #{order.id.slice(0, 8).toUpperCase()}
@@ -276,16 +214,16 @@ export default function OrderDetailPage() {
             </div>
           </div>
 
-          {/* ── Shipping / Label ──────────────────────────────── */}
+          {/* ── Shipping ──────────────────────────────────────── */}
           <div style={{ background: "var(--white)", border: "1px solid var(--border)", borderRadius: 8, padding: "24px" }}>
             <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.2rem", fontWeight: 600, color: "var(--brown)", marginBottom: 20 }}>
               Shipping
             </h2>
 
-            {/* Already shipped — show existing label info */}
-            {(isShipped || order.tracking_number || order.label_url) && (
-              <div style={{ marginBottom: showLabelSection ? 24 : 0 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 16, marginBottom: 16 }}>
+            {/* Already shipped */}
+            {isShipped && (
+              <div style={{ marginBottom: 0 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 16, marginBottom: order.label_url ? 16 : 0 }}>
                   <Field label="Carrier" value={order.carrier} />
                   <Field label="Tracking Number" value={order.tracking_number} />
                 </div>
@@ -294,142 +232,71 @@ export default function OrderDetailPage() {
                     href={order.label_url}
                     target="_blank"
                     rel="noreferrer"
-                    style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 500, color: "var(--gold)", textDecoration: "none", border: "1px solid var(--gold)", borderRadius: 4, padding: "8px 16px" }}
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 500, color: "var(--gold)", textDecoration: "none", border: "1px solid var(--gold)", borderRadius: 4, padding: "8px 16px", marginTop: 8 }}
                   >
                     🖨️ Print Label →
                   </a>
                 )}
+                <p style={{ fontSize: "0.8rem", color: "var(--brown-light)", fontWeight: 300, marginTop: 12 }}>
+                  Customer has been notified via email.
+                </p>
               </div>
             )}
 
-            {/* Label purchase success banner */}
-            {labelResult && (
-              <div style={{ background: "rgba(74,103,65,0.07)", border: "1px solid rgba(74,103,65,0.2)", borderRadius: 6, padding: "14px 18px", marginBottom: 20, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12 }}>
-                <span style={{ fontSize: "0.88rem", color: "var(--green)", fontWeight: 600 }}>✓ Label created!</span>
-                <span style={{ fontSize: "0.85rem", color: "var(--brown-light)", fontWeight: 300 }}>
-                  Tracking: <strong style={{ color: "var(--brown)", fontWeight: 600 }}>{labelResult.trackingNumber}</strong>
-                </span>
-                <a href={labelResult.labelUrl} target="_blank" rel="noreferrer"
-                  style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 500, color: "var(--gold)", textDecoration: "none" }}>
-                  Print Label →
-                </a>
-              </div>
-            )}
-
-            {/* Generate label section — only when not shipped/cancelled */}
-            {showLabelSection && (
+            {/* Mark as Shipped form */}
+            {!isShipped && !isCancelled && (
               <div>
-                <div style={{ borderTop: (isShipped || order.tracking_number || order.label_url) ? "1px solid var(--border)" : "none", paddingTop: (isShipped || order.tracking_number || order.label_url) ? 20 : 0 }}>
-                  <p style={{ fontSize: "0.82rem", color: "var(--brown-light)", fontWeight: 300, marginBottom: 16 }}>
-                    Fetch available USPS rates, select one, then purchase the label.
-                  </p>
-
-                  {/* Step 1: Get Rates */}
-                  {rates.length === 0 && !fetchingRates && (
-                    <button
-                      type="button"
-                      onClick={handleGetRates}
-                      className="btn-outline"
-                      style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
-                    >
-                      Get USPS Rates
-                    </button>
-                  )}
-
-                  {fetchingRates && (
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, color: "var(--brown-light)", fontSize: "0.88rem" }}>
-                      <div style={{ width: 16, height: 16, border: "2px solid var(--border)", borderTopColor: "var(--gold)", borderRadius: "50%", animation: "spin 0.8s linear infinite", flexShrink: 0 }} />
-                      Fetching rates…
-                    </div>
-                  )}
-
-                  {ratesError && (
-                    <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", color: "#c0392b", background: "rgba(192,57,43,0.06)", border: "1px solid rgba(192,57,43,0.2)", borderRadius: 4, padding: "8px 12px", marginTop: 8 }}>
-                      {ratesError}
-                    </p>
-                  )}
-
-                  {/* Step 2: Rate selection */}
-                  {rates.length > 0 && (
-                    <div>
-                      <p style={{ fontSize: "0.72rem", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--brown-light)", marginBottom: 12 }}>
-                        Select a Rate
-                      </p>
-                      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
-                        {rates.map((rate) => {
-                          const isSelected = selectedRateId === rate.id;
-                          return (
-                            <button
-                              key={rate.id}
-                              type="button"
-                              onClick={() => setSelectedRateId(rate.id)}
-                              style={{
-                                textAlign: "left",
-                                padding: "14px 18px",
-                                borderRadius: 6,
-                                border: isSelected ? "2px solid var(--gold)" : "1px solid var(--border)",
-                                background: isSelected ? "rgba(196,146,74,0.05)" : "var(--cream)",
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                                flexWrap: "wrap",
-                                gap: 8,
-                                transition: "border-color 0.15s, background 0.15s",
-                              }}
-                            >
-                              <div>
-                                <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.9rem", fontWeight: 600, color: "var(--brown)", margin: 0 }}>
-                                  {rate.service}
-                                </p>
-                                <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", color: "var(--brown-light)", fontWeight: 300, margin: "2px 0 0" }}>
-                                  {rate.carrier}
-                                  {rate.delivery_days != null ? ` · ${rate.delivery_days} day${rate.delivery_days !== 1 ? "s" : ""}` : ""}
-                                  {rate.est_delivery_date ? ` · Est. ${new Date(rate.est_delivery_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}` : ""}
-                                </p>
-                              </div>
-                              <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.3rem", fontWeight: 700, color: isSelected ? "var(--gold)" : "var(--brown)", margin: 0 }}>
-                                ${Number(rate.rate).toFixed(2)}
-                              </p>
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      {labelError && (
-                        <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", color: "#c0392b", background: "rgba(192,57,43,0.06)", border: "1px solid rgba(192,57,43,0.2)", borderRadius: 4, padding: "8px 12px", marginBottom: 12 }}>
-                          {labelError}
-                        </p>
-                      )}
-
-                      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-                        <button
-                          type="button"
-                          onClick={handlePurchaseLabel}
-                          disabled={!selectedRateId || purchasingLabel}
-                          className="btn-primary"
-                          style={{ opacity: (!selectedRateId || purchasingLabel) ? 0.6 : 1, display: "inline-flex", alignItems: "center", gap: 8 }}
-                        >
-                          {purchasingLabel ? (
-                            <>
-                              <div style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,0.4)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
-                              Purchasing label…
-                            </>
-                          ) : (
-                            "Purchase Label"
-                          )}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => { setRates([]); setShipmentId(null); setSelectedRateId(null); setRatesError(""); }}
-                          style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.8rem", color: "var(--brown-light)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                {shipSuccess && (
+                  <div className="banner-success" style={{ marginBottom: 16 }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+                    {shipSuccess}
+                  </div>
+                )}
+                {shipError && (
+                  <div className="banner-error" style={{ marginBottom: 16 }}>{shipError}</div>
+                )}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12, marginBottom: 16 }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.72rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--brown-light)", marginBottom: 6 }}>
+                      Carrier
+                    </label>
+                    <input
+                      type="text"
+                      value={carrier}
+                      onChange={(e) => setCarrier(e.target.value)}
+                      placeholder="USPS"
+                      style={{ width: "100%", padding: "9px 12px", border: "1px solid var(--border)", borderRadius: 4, fontFamily: "'Jost', sans-serif", fontSize: "0.88rem", color: "var(--brown)", background: "var(--white)", outline: "none", boxSizing: "border-box" }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.72rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--brown-light)", marginBottom: 6 }}>
+                      Tracking Number
+                    </label>
+                    <input
+                      type="text"
+                      value={trackingNumber}
+                      onChange={(e) => setTrackingNumber(e.target.value)}
+                      placeholder="e.g. 9400111899223397846059"
+                      style={{ width: "100%", padding: "9px 12px", border: "1px solid var(--border)", borderRadius: 4, fontFamily: "'Jost', sans-serif", fontSize: "0.88rem", color: "var(--brown)", background: "var(--white)", outline: "none", boxSizing: "border-box" }}
+                    />
+                  </div>
                 </div>
+                <button
+                  type="button"
+                  onClick={handleMarkShipped}
+                  disabled={shipping || !trackingNumber.trim()}
+                  className="btn-primary"
+                  style={{ opacity: shipping || !trackingNumber.trim() ? 0.7 : 1, display: "inline-flex", alignItems: "center", gap: 8 }}
+                >
+                  {shipping ? (
+                    <>
+                      <div style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,0.4)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
+                      Marking…
+                    </>
+                  ) : (
+                    "Mark as Shipped"
+                  )}
+                </button>
               </div>
             )}
           </div>
@@ -477,7 +344,7 @@ export default function OrderDetailPage() {
 
             {statusSuccess && (
               <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", color: "var(--green)", fontWeight: 500 }}>
-                ✓ {statusSuccess}
+                {statusSuccess}
               </p>
             )}
             {statusError && (
