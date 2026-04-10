@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import Stripe from "stripe";
 import { Promotion, getCartLineTotal, getProductPricing } from "@/lib/pricing";
-import { getSettings } from "@/lib/settings";
+import { getStripeSecretKey } from "@/lib/settings";
 
 type CheckoutItemInput = {
   id: string;
@@ -17,17 +17,15 @@ const supabase = createClient(
 
 export async function POST(request: Request) {
   try {
-    const { stripe_secret_key } = await getSettings(["stripe_secret_key"]);
-
-    const stripeKey = stripe_secret_key || process.env.STRIPE_SECRET_KEY!;
-
-    if (!stripeKey) {
+    let stripeKey: string;
+    try {
+      stripeKey = getStripeSecretKey();
+    } catch {
       return NextResponse.json(
-        { error: "Stripe is not configured yet. Please contact the store admin." },
+        { error: "Stripe is not configured. Please contact the store admin." },
         { status: 503 }
       );
     }
-
     const stripe = new Stripe(stripeKey);
 
     const body = await request.json();

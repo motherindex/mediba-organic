@@ -8,7 +8,16 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// GET — fetch all settings (admin only)
+const ALLOWED_KEYS = [
+  "shippo_from_name",
+  "shippo_from_street",
+  "shippo_from_city",
+  "shippo_from_state",
+  "shippo_from_zip",
+  "shippo_from_phone",
+];
+
+// GET — fetch ship-from address fields only
 export async function GET() {
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -17,6 +26,7 @@ export async function GET() {
   const { data, error } = await supabaseAdmin
     .from("settings")
     .select("key, value")
+    .in("key", ALLOWED_KEYS)
     .order("key");
 
   if (error) {
@@ -32,7 +42,7 @@ export async function GET() {
   return NextResponse.json({ settings });
 }
 
-// POST — save settings (admin only)
+// POST — save ship-from address fields only
 export async function POST(request: Request) {
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -40,8 +50,8 @@ export async function POST(request: Request) {
 
   const body = await request.json();
 
-  // Upsert each key individually
   for (const [key, value] of Object.entries(body)) {
+    if (!ALLOWED_KEYS.includes(key)) continue;
     await supabaseAdmin
       .from("settings")
       .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: "key" });

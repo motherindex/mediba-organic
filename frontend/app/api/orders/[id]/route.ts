@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
-import { getSettings } from "@/lib/settings";
+import { getResendApiKey, getResendFromEmail } from "@/lib/settings";
 import {
   orderShippedEmail,
   orderDeliveredEmail,
@@ -47,30 +47,30 @@ export async function PATCH(
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await request.json();
-  const { status, tracking_number, carrier } = body;
+
+  const allowed = ["status", "tracking_number", "carrier", "label_url", "notes"];
+  const updates: Record<string, any> = { updated_at: new Date().toISOString() };
+  for (const key of allowed) {
+    if (key in body) updates[key] = body[key];
+  }
 
   const { data: order, error } = await supabaseAdmin
     .from("orders")
-    .update({
-      status,
-      tracking_number: tracking_number ?? null,
-      carrier: carrier ?? null,
-      updated_at: new Date().toISOString(),
-    })
+    .update(updates)
     .eq("id", id)
     .select()
     .single();
 
+  const { status, tracking_number, carrier } = body;
+
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   // Send email based on new status
-  const { resend_api_key, resend_from_email } = await getSettings([
-    "resend_api_key",
-    "resend_from_email",
-  ]);
+  let resendKey: string | null = null;
+  try { resendKey = getResendApiKey(); } catch {}
 
-  if (resend_api_key && order.customer_email) {
-    const fromEmail = resend_from_email || "orders@resend.dev";
+  if (resendKey && order.customer_email) {
+    const fromEmail = getResendFromEmail();
     const customerName = order.customer_name ?? order.customer_email;
     const orderId = order.id;
 
@@ -92,7 +92,7 @@ export async function PATCH(
       await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${resend_api_key}`,
+          Authorization: `Bearer ${resendKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ from: fromEmail, to: order.customer_email, subject, html }),

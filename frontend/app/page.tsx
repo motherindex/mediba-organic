@@ -4,10 +4,18 @@ import { Product } from "@/types/product";
 import { Promotion, getProductPricing } from "@/lib/pricing";
 
 export default async function Home() {
-  const [{ data, error }, { data: promotionsData }] = await Promise.all([
+  const [{ data, error }, { data: promotionsData }, { data: testimonialsData }] = await Promise.all([
     supabase.from("products").select("*"),
     supabase.from("promotions").select("*"),
+    supabase
+      .from("reviews")
+      .select("*")
+      .gte("rating", 4)
+      .order("created_at", { ascending: false })
+      .limit(6),
   ]);
+
+  const testimonials = testimonialsData ?? [];
 
   const promotions = (promotionsData ?? []) as Promotion[];
 
@@ -293,6 +301,96 @@ export default async function Home() {
           )}
         </div>
       </section>
+
+      {/* ── TESTIMONIALS ─────────────────────────────── */}
+      {testimonials.length > 0 && (
+        <section className="content-section white-section">
+          <div style={{ maxWidth: 1152, margin: "0 auto" }}>
+            <div style={{ textAlign: "center", marginBottom: 48 }}>
+              <p className="section-label">What Customers Say</p>
+              <h2
+                style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontSize: "clamp(1.8rem, 4vw, 3rem)",
+                  fontWeight: 600,
+                  color: "var(--brown)",
+                }}
+              >
+                Customer Reviews
+              </h2>
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                gap: 20,
+              }}
+            >
+              {testimonials.map((review: any) => (
+                <div
+                  key={review.id}
+                  className="card-hover"
+                  style={{
+                    background: "var(--cream)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 8,
+                    padding: "28px 24px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 12,
+                  }}
+                >
+                  {/* Stars */}
+                  <div style={{ display: "flex", gap: 3 }}>
+                    {[1,2,3,4,5].map(s => (
+                      <span
+                        key={s}
+                        style={{
+                          fontSize: 16,
+                          color: s <= review.rating ? "var(--gold)" : "var(--border)",
+                        }}
+                      >
+                        ★
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Review text */}
+                  {review.body && (
+                    <p
+                      style={{
+                        fontFamily: "'Jost', sans-serif",
+                        fontSize: "0.9rem",
+                        color: "var(--brown-light)",
+                        lineHeight: 1.75,
+                        fontWeight: 300,
+                        flex: 1,
+                        fontStyle: "italic",
+                      }}
+                    >
+                      &ldquo;{review.body}&rdquo;
+                    </p>
+                  )}
+
+                  {/* Reviewer name */}
+                  <p
+                    style={{
+                      fontFamily: "'Jost', sans-serif",
+                      fontSize: "0.78rem",
+                      fontWeight: 600,
+                      color: "var(--brown)",
+                      letterSpacing: "0.06em",
+                    }}
+                  >
+                    — {review.reviewer_name || "Verified Customer"}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── ABOUT ─────────────────────────────────────────── */}
       <section

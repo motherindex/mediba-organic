@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import Stripe from "stripe";
-import { getSettings } from "@/lib/settings";
+import { getStripeSecretKey, getStripeWebhookSecret, getResendApiKey, getResendFromEmail } from "@/lib/settings";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -13,20 +13,14 @@ export async function POST(request: Request) {
   const body = await request.text();
   const sig = request.headers.get("stripe-signature")!;
 
-  const {
-    stripe_secret_key,
-    stripe_webhook_secret,
-    resend_api_key,
-    resend_from_email,
-  } = await getSettings([
-    "stripe_secret_key",
-    "stripe_webhook_secret",
-    "resend_api_key",
-    "resend_from_email",
-  ]);
-
-  const webhookSecret = stripe_webhook_secret || process.env.STRIPE_WEBHOOK_SECRET!;
-  const stripeKey = stripe_secret_key || process.env.STRIPE_SECRET_KEY!;
+  let stripeKey: string;
+  let webhookSecret: string;
+  try {
+    stripeKey = getStripeSecretKey();
+    webhookSecret = getStripeWebhookSecret();
+  } catch {
+    return NextResponse.json({ error: "Stripe not configured" }, { status: 503 });
+  }
 
   const stripe = new Stripe(stripeKey);
 
@@ -76,10 +70,12 @@ export async function POST(request: Request) {
       });
     }
 
-    if (resend_api_key && customerEmail) {
-      const fromEmail = resend_from_email || "orders@resend.dev";
+    let resendKey: string | null = null;
+    try { resendKey = getResendApiKey(); } catch {}
+    if (resendKey && customerEmail) {
+      const fromEmail = getResendFromEmail();
       await sendEmail({
-        apiKey: resend_api_key,
+        apiKey: resendKey,
         from: fromEmail,
         to: customerEmail,
         subject: "Your Mediba's Organic Order is Confirmed! 🌿",

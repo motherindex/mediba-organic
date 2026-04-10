@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { Promotion, getProductPricing } from "@/lib/pricing";
 import { ProductImageGallery } from "@/components/product-image-gallery";
+import { ProductReviews } from "@/components/product-reviews";
 
 type ProductPageProps = {
   params: Promise<{ id: string }>;
@@ -194,6 +195,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </div>
           </div>
         </div>
+
+        <ProductReviews productId={product.id} />
       </div>
 
       <style>{`

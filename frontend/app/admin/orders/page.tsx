@@ -15,10 +15,6 @@ const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [generating, setGenerating] = useState(false);
-  const [results, setResults] = useState<{ orderId: string; labelUrl: string | null; trackingNumber: string | null; error?: string }[]>([]);
-  const [showResults, setShowResults] = useState(false);
 
   useEffect(() => {
     fetch("/api/orders")
@@ -30,57 +26,6 @@ export default function AdminOrdersPage() {
       .catch(() => setLoading(false));
   }, []);
 
-  function toggleSelect(id: string) {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  }
-
-  function toggleAll() {
-    if (selected.size === orders.length) {
-      setSelected(new Set());
-    } else {
-      setSelected(new Set(orders.map((o) => o.id)));
-    }
-  }
-
-  async function handleGenerateLabels() {
-    if (selected.size === 0) return;
-    setGenerating(true);
-    setShowResults(false);
-
-    const res = await fetch("/api/shippo/label", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ order_ids: Array.from(selected) }),
-    });
-
-    const data = await res.json();
-    setGenerating(false);
-
-    if (!res.ok) {
-      alert(data.error ?? "Failed to generate labels.");
-      return;
-    }
-
-    setResults(data.results ?? []);
-    setShowResults(true);
-
-    // Open all successful label PDFs in new tabs
-    for (const result of data.results ?? []) {
-      if (result.labelUrl) {
-        window.open(result.labelUrl, "_blank");
-      }
-    }
-
-    // Refresh orders list
-    const refreshed = await fetch("/api/orders").then((r) => r.json());
-    setOrders(refreshed.orders ?? []);
-    setSelected(new Set());
-  }
-
   if (loading) {
     return (
       <main style={{ minHeight: "100vh", background: "var(--cream)", padding: "64px 24px", fontFamily: "'Jost', sans-serif" }}>
@@ -88,9 +33,6 @@ export default function AdminOrdersPage() {
       </main>
     );
   }
-
-  const allSelected = orders.length > 0 && selected.size === orders.length;
-  const someSelected = selected.size > 0;
 
   return (
     <main style={{ minHeight: "100vh", background: "var(--cream)", padding: "48px 20px 80px", fontFamily: "'Jost', sans-serif" }}>
@@ -106,83 +48,19 @@ export default function AdminOrdersPage() {
               Orders
             </h1>
             <p style={{ fontSize: "0.9rem", color: "var(--brown-light)", fontWeight: 300, marginTop: 6 }}>
-              {orders.length} total orders
+              {orders.length} total order{orders.length !== 1 ? "s" : ""}
             </p>
           </div>
-
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
-            {someSelected && (
-              <button
-                onClick={handleGenerateLabels}
-                disabled={generating}
-                className="btn-primary"
-                style={{ opacity: generating ? 0.7 : 1, display: "flex", alignItems: "center", gap: 8 }}
-              >
-                {generating ? (
-                  <>
-                    <div style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,0.4)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
-                    Generating {selected.size} label{selected.size > 1 ? "s" : ""}…
-                  </>
-                ) : (
-                  <>📦 Generate {selected.size} Label{selected.size > 1 ? "s" : ""}</>
-                )}
-              </button>
-            )}
-            <Link href="/admin" className="btn-outline">← Dashboard</Link>
-          </div>
+          <Link href="/admin" className="btn-outline">← Dashboard</Link>
         </div>
-
-        {/* Label results banner */}
-        {showResults && results.length > 0 && (
-          <div style={{ marginBottom: 20, background: "var(--white)", border: "1px solid var(--border)", borderRadius: 8, padding: "20px 24px" }}>
-            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.1rem", fontWeight: 600, color: "var(--brown)", marginBottom: 12 }}>
-              Label Generation Results
-            </p>
-            {results.map((r) => (
-              <div key={r.orderId} style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8, fontSize: "0.85rem", fontFamily: "'Jost', sans-serif" }}>
-                {r.labelUrl ? (
-                  <>
-                    <span style={{ color: "var(--green)", fontWeight: 600 }}>✓</span>
-                    <span style={{ color: "var(--brown)" }}>#{r.orderId.slice(0, 8).toUpperCase()}</span>
-                    <span style={{ color: "var(--brown-light)" }}>Tracking: {r.trackingNumber}</span>
-                    <a href={r.labelUrl} target="_blank" rel="noreferrer" style={{ color: "var(--gold)", fontWeight: 500, textDecoration: "none" }}>
-                      Print Label →
-                    </a>
-                  </>
-                ) : (
-                  <>
-                    <span style={{ color: "#c0392b", fontWeight: 600 }}>✗</span>
-                    <span style={{ color: "var(--brown)" }}>#{r.orderId.slice(0, 8).toUpperCase()}</span>
-                    <span style={{ color: "#c0392b" }}>{r.error}</span>
-                  </>
-                )}
-              </div>
-            ))}
-            <button
-              onClick={() => setShowResults(false)}
-              style={{ marginTop: 8, fontFamily: "'Jost', sans-serif", fontSize: "0.75rem", color: "var(--brown-light)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
-            >
-              Dismiss
-            </button>
-          </div>
-        )}
 
         {/* Table */}
         <div style={{ background: "var(--white)", border: "1px solid var(--border)", borderRadius: 8 }}>
           {orders.length > 0 ? (
             <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.88rem", minWidth: 680 }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.88rem", minWidth: 640 }}>
                 <thead>
                   <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                    {/* Select all checkbox */}
-                    <th style={{ padding: "14px 8px 14px 16px", width: 40 }}>
-                      <input
-                        type="checkbox"
-                        checked={allSelected}
-                        onChange={toggleAll}
-                        style={{ cursor: "pointer", width: 16, height: 16, accentColor: "var(--gold)" }}
-                      />
-                    </th>
                     {["Order", "Customer", "Total", "Status", "Date", "Label", ""].map((h) => (
                       <th key={h} style={{ textAlign: "left", padding: "14px 16px 14px 0", fontSize: "0.68rem", fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--brown-light)", whiteSpace: "nowrap" }}>
                         {h}
@@ -194,29 +72,13 @@ export default function AdminOrdersPage() {
                   {orders.map((order: any) => {
                     const status = order.status ?? "pending";
                     const colors = STATUS_COLORS[status] ?? STATUS_COLORS.pending;
-                    const isSelected = selected.has(order.id);
 
                     return (
                       <tr
                         key={order.id}
-                        style={{
-                          borderBottom: "1px solid var(--cream-dark)",
-                          verticalAlign: "middle",
-                          background: isSelected ? "rgba(196,146,74,0.04)" : "transparent",
-                          transition: "background 0.1s",
-                        }}
+                        style={{ borderBottom: "1px solid var(--cream-dark)", verticalAlign: "middle" }}
                       >
-                        {/* Checkbox */}
-                        <td style={{ padding: "14px 8px 14px 16px" }}>
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => toggleSelect(order.id)}
-                            style={{ cursor: "pointer", width: 16, height: 16, accentColor: "var(--gold)" }}
-                          />
-                        </td>
-
-                        <td style={{ padding: "14px 16px 14px 0", fontWeight: 600, color: "var(--brown)", whiteSpace: "nowrap" }}>
+                        <td style={{ padding: "14px 16px 14px 16px", fontWeight: 600, color: "var(--brown)", whiteSpace: "nowrap" }}>
                           #{order.id.slice(0, 8).toUpperCase()}
                         </td>
 
@@ -245,7 +107,6 @@ export default function AdminOrdersPage() {
                           {order.created_at ? new Date(order.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
                         </td>
 
-                        {/* Label link if exists */}
                         <td style={{ padding: "14px 16px 14px 0", whiteSpace: "nowrap" }}>
                           {order.label_url ? (
                             <a
@@ -281,15 +142,7 @@ export default function AdminOrdersPage() {
             </div>
           )}
         </div>
-
-        {someSelected && (
-          <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.8rem", color: "var(--brown-light)", fontWeight: 300, marginTop: 12, textAlign: "right" }}>
-            {selected.size} order{selected.size > 1 ? "s" : ""} selected — click "Generate Labels" to create shipping labels and notify customers
-          </p>
-        )}
       </div>
-
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </main>
   );
 }

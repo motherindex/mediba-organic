@@ -110,6 +110,7 @@ export default async function AdminPage() {
             { label: "Add New Product", href: "/admin/products/new", icon: "+" },
             { label: "View All Orders", href: "/admin/orders", icon: "📦" },
             { label: "Manage Promotions", href: "/admin/promotions", icon: "🏷️" },
+            { label: "Customer Reviews", href: "/admin/reviews", icon: "★" },
             { label: "API & Integrations", href: "/admin/settings", icon: "🔑" },
           ].map((item) => (
             <Link
