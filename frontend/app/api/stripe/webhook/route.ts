@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
-          expand: ["line_items"],
+          expand: ["line_items", "shipping_cost"],
         });
         await handleCheckoutCompleted(fullSession);
         break;
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ received: true }, { status: 200 });
 }
 
-export async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const { data: existing } = await supabase
     .from("orders")
     .select("id")
@@ -90,22 +90,25 @@ export async function handleCheckoutCompleted(session: Stripe.Checkout.Session) 
 
   const customerEmail = session.customer_details?.email ?? null;
   const customerName = session.customer_details?.name ?? null;
-  const shippingName = session.shipping_details?.name ?? null;
-  const shippingAddress = session.shipping_details?.address
+
+  // shipping field name differs by Stripe SDK version — handle both
+  const shipping = (session as any).shipping ?? (session as any).shipping_details ?? null;
+  const shippingName = shipping?.name ?? null;
+  const shippingAddress = shipping?.address
     ? [
-        session.shipping_details.address.line1,
-        session.shipping_details.address.line2,
-        session.shipping_details.address.city,
-        session.shipping_details.address.state,
-        session.shipping_details.address.postal_code,
-        session.shipping_details.address.country,
+        shipping.address.line1,
+        shipping.address.line2,
+        shipping.address.city,
+        shipping.address.state,
+        shipping.address.postal_code,
+        shipping.address.country,
       ]
         .filter(Boolean)
         .join(", ")
     : null;
 
-  const shippingCost = session.shipping_cost?.amount_total
-    ? session.shipping_cost.amount_total / 100
+  const shippingCost = (session as any).shipping_cost?.amount_total
+    ? (session as any).shipping_cost.amount_total / 100
     : null;
 
   const createdAt = new Date(session.created * 1000).toISOString();
