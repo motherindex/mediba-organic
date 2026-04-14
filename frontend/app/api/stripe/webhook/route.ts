@@ -92,7 +92,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const customerName = session.customer_details?.name ?? null;
 
   // shipping field name differs by Stripe SDK version — handle both
-  const shipping = (session as any).shipping ?? (session as any).shipping_details ?? null;
+  const shipping = (session as any).collected_information?.shipping_details ?? (session as any).shipping ?? null;
   const shippingName = shipping?.name ?? null;
   const shippingAddress = shipping?.address
     ? [
