@@ -37,28 +37,12 @@ export async function POST(req: NextRequest) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        await handleCheckoutCompleted(session);
+        const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
+          expand: ["line_items"],
+        });
+        await handleCheckoutCompleted(fullSession);
         break;
       }
-
-      case "payment_intent.succeeded": {
-        const intent = event.data.object as Stripe.PaymentIntent;
-        console.log("PaymentIntent succeeded:", intent.id);
-        break;
-      }
-
-      case "payment_intent.payment_failed": {
-        const intent = event.data.object as Stripe.PaymentIntent;
-        console.error("PaymentIntent failed:", intent.id);
-        break;
-      }
-
-      case "invoice.payment_succeeded": {
-        const invoice = event.data.object as Stripe.Invoice;
-        console.log("Invoice paid:", invoice.id);
-        break;
-      }
-
       default:
         console.log(`Unhandled event type: ${event.type}`);
     }
@@ -70,29 +54,85 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ received: true }, { status: 200 });
 }
 
-async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-  const orderId = session.metadata?.order_id;
+export async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+  const { data: existing } = await supabase
+    .from("orders")
+    .select("id")
+    .eq("stripe_session_id", session.id)
+    .limit(1);
 
-  if (!orderId) {
-    console.warn("checkout.session.completed: no order_id in metadata");
+  if (existing && existing.length > 0) {
+    console.log(`Session ${session.id} already processed — skipping`);
     return;
   }
 
-  // Update order status in Supabase
-  const { error } = await supabase
-    .from("orders")
-    .update({
-      status: "paid",
-      stripe_session_id: session.id,
-      stripe_payment_intent: session.payment_intent as string,
-      paid_at: new Date().toISOString(),
-    })
-    .eq("id", orderId);
+  const cart: { id: string; quantity: number }[] = JSON.parse(
+    session.metadata?.cart ?? "[]"
+  );
 
-  if (error) {
-    console.error("Failed to update order in Supabase:", error.message);
-    throw error;
+  if (cart.length === 0) {
+    console.warn(`Session ${session.id} has no cart metadata`);
+    return;
   }
 
-  console.log(`Order ${orderId} marked as paid via Stripe session ${session.id}`);
+  const productIds = cart.map((i) => i.id);
+  const { data: products, error: productsError } = await supabase
+    .from("products")
+    .select("id, price")
+    .in("id", productIds);
+
+  if (productsError) {
+    console.error("Failed to fetch products:", productsError.message);
+    throw productsError;
+  }
+
+  const productMap = new Map((products ?? []).map((p: any) => [p.id, p]));
+
+  const customerEmail = session.customer_details?.email ?? null;
+  const customerName = session.customer_details?.name ?? null;
+  const shippingName = session.shipping_details?.name ?? null;
+  const shippingAddress = session.shipping_details?.address
+    ? [
+        session.shipping_details.address.line1,
+        session.shipping_details.address.line2,
+        session.shipping_details.address.city,
+        session.shipping_details.address.state,
+        session.shipping_details.address.postal_code,
+        session.shipping_details.address.country,
+      ]
+        .filter(Boolean)
+        .join(", ")
+    : null;
+
+  const shippingCost = session.shipping_cost?.amount_total
+    ? session.shipping_cost.amount_total / 100
+    : null;
+
+  const createdAt = new Date(session.created * 1000).toISOString();
+
+  const rows = cart.map((item) => {
+    const product = productMap.get(item.id);
+    return {
+      product_id: item.id,
+      quantity: item.quantity,
+      price: product ? Number(product.price) : 0,
+      customer_email: customerEmail,
+      customer_name: customerName,
+      shipping_name: shippingName,
+      shipping_address: shippingAddress,
+      shipping_cost: shippingCost,
+      status: "paid",
+      stripe_session_id: session.id,
+      created_at: createdAt,
+    };
+  });
+
+  const { error: insertError } = await supabase.from("orders").insert(rows);
+
+  if (insertError) {
+    console.error("Failed to insert orders:", insertError.message);
+    throw insertError;
+  }
+
+  console.log(`Created ${rows.length} order row(s) from session ${session.id} for ${customerEmail}`);
 }
