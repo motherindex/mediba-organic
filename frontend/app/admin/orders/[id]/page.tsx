@@ -33,14 +33,12 @@ export default function OrderDetailPage() {
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // Mark as shipped
   const [carrier, setCarrier] = useState("USPS");
   const [trackingNumber, setTrackingNumber] = useState("");
   const [shipping, setShipping] = useState(false);
   const [shipSuccess, setShipSuccess] = useState("");
   const [shipError, setShipError] = useState("");
 
-  // Status update
   const [statusSaving, setStatusSaving] = useState(false);
   const [statusError, setStatusError] = useState("");
   const [statusSuccess, setStatusSuccess] = useState("");
@@ -119,19 +117,7 @@ export default function OrderDetailPage() {
     );
   }
 
-  let shippingAddress: any = null;
-  try { shippingAddress = order.shipping_address ? JSON.parse(order.shipping_address) : null; } catch {}
-
-  const formattedAddress = shippingAddress
-    ? [
-        shippingAddress.line1,
-        shippingAddress.line2,
-        shippingAddress.city && shippingAddress.state
-          ? `${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.postal_code ?? ""}`
-          : shippingAddress.city ?? shippingAddress.postal_code,
-        shippingAddress.country && shippingAddress.country !== "US" ? shippingAddress.country : null,
-      ].filter(Boolean).join("\n")
-    : null;
+  const formattedAddress = order.shipping_address ?? null;
 
   const currentStatus = order.status ?? "pending";
   const statusColors = STATUS_COLORS[currentStatus] ?? STATUS_COLORS.pending;
@@ -220,7 +206,6 @@ export default function OrderDetailPage() {
               Shipping
             </h2>
 
-            {/* Already shipped */}
             {isShipped && (
               <div style={{ marginBottom: 0 }}>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 16, marginBottom: order.label_url ? 16 : 0 }}>
@@ -243,7 +228,6 @@ export default function OrderDetailPage() {
               </div>
             )}
 
-            {/* Mark as Shipped form */}
             {!isShipped && !isCancelled && (
               <div>
                 {shipSuccess && (
