@@ -97,7 +97,7 @@ export async function POST(request: Request) {
         {
           shipping_rate_data: {
             type: "fixed_amount",
-            fixed_amount: { amount: 799, currency: "usd" },
+            fixed_amount: { amount: 599, currency: "usd" },
             display_name: "Standard Shipping",
             delivery_estimate: {
               minimum: { unit: "business_day", value: 5 },
@@ -108,7 +108,7 @@ export async function POST(request: Request) {
         {
           shipping_rate_data: {
             type: "fixed_amount",
-            fixed_amount: { amount: 1499, currency: "usd" },
+            fixed_amount: { amount: 1099, currency: "usd" },
             display_name: "Express Shipping",
             delivery_estimate: {
               minimum: { unit: "business_day", value: 2 },
